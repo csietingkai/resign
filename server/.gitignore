@@ -1,0 +1,8 @@
+postgres/data
+mongodb/data
+redis/data
+redis/log/redis-server.log
+
+backup/
+
+.history/
