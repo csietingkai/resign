@@ -1,20 +1,20 @@
 import * as StateHolder from './StateHolder';
-import { AuthToken, UserSetting } from '../api/auth';
+import { AuthToken } from '../api/auth';
 import { Notification } from '../util/Interface';
+import { StampCard, UserInfo } from '../api/resign';
 
 export interface ReduxState {
     auth: ReduxAuthState;
+    resign: ReduxResignState;
     setting: ReduxSystemSettingState;
 }
 
 // authReducer
 export interface ReduxAuthState {
     authToken: AuthToken | undefined;
-    userSetting: UserSetting | undefined;
 }
 export const DEFAULT_REDUX_AUTH_STATE: ReduxAuthState = {
     authToken: undefined,
-    userSetting: undefined
 };
 const getAuthState = (state: ReduxState): ReduxAuthState => state.auth;
 export const getAuthToken = (state: ReduxState): AuthToken => getAuthState(state)?.authToken as AuthToken;
@@ -23,8 +23,19 @@ export const getAuthTokenName = (state: ReduxState): string => getAuthToken(stat
 export const getAuthTokenRole = (state: ReduxState): string => getAuthToken(state)?.role;
 export const getAuthTokenString = (state: ReduxState): string => getAuthToken(state)?.tokenString;
 export const getAuthTokenExpiryDate = (state: ReduxState): Date => getAuthToken(state)?.expiryDate;
-export const getUserSetting = (state: ReduxState): UserSetting => getAuthState(state)?.userSetting as UserSetting;
-export const isPwdChanged = (state: ReduxState): boolean => getUserSetting(state)?.pwdChanged;
+
+// resignReducer
+export interface ReduxResignState {
+    userInfo: UserInfo | undefined;
+    leadingStampCards: StampCard[];
+}
+export const DEFAULT_REDUX_RESIGN_STATE: ReduxResignState = {
+    userInfo: undefined,
+    leadingStampCards: []
+};
+const getResignState = (state: ReduxState): ReduxResignState => state.resign;
+export const getUserInfo = (state: ReduxState): UserInfo => getResignState(state)?.userInfo as UserInfo;
+export const getLeadingStampCards = (state: ReduxState): StampCard[] => getResignState(state).leadingStampCards;
 
 // system variable
 export interface ReduxSystemSettingState {

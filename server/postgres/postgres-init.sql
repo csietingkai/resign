@@ -1,9 +1,9 @@
-CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp"
 
-CREATE TABLE IF NOT EXISTS user_setting (
+CREATE TABLE IF NOT EXISTS user_info (
 	id uuid NOT NULL DEFAULT uuid_generate_v4(),
-	user_id uuid NOT NULL,
-	pwd_changed BOOLEAN NOT NULL DEFAULT false,
+	user_name VARCHAR NOT NULL,
+	signed BOOLEAN NOT NULL DEFAULT true,
 	PRIMARY KEY (id)
 );
 
@@ -19,7 +19,7 @@ CREATE TABLE IF NOT EXISTS coworker (
 
 CREATE TABLE IF NOT EXISTS stamp_card (
 	id uuid NOT NULL DEFAULT uuid_generate_v4(),
-	user_id uuid NOT NULL,
+	user_name VARCHAR NOT NULL,
 	point integer NOT NULL DEFAULT 0,
 	PRIMARY KEY (id)
 );

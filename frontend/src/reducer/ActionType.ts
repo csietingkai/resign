@@ -1,7 +1,10 @@
 // auth
 export const LOGIN: string = 'LOGIN';
 export const LOGOUT: string = 'LOGOUT';
-export const SET_USER_SETTING: string = 'SET_USER_SETTING';
+
+// resign
+export const SET_USER_INFO: string = 'SET_USER_INFO';
+export const SET_LEADING_STAMP_CARDS: string = 'SET_LEADING_STAMP_CARDS';
 
 // system setting
 export const SET_LOADING: string = 'SET_LOADING';

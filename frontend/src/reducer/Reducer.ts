@@ -1,12 +1,13 @@
 import { combineReducers } from 'redux';
 import axios from 'axios';
-import { AuthToken, UserSetting } from '../api/auth';
-import { DEFAULT_REDUX_AUTH_STATE, DEFAULT_REDUX_SYSTEM_SETTING_STATE, ReduxAuthState, ReduxSystemSettingState } from './Selector';
-import { LOGIN, LOGOUT, SET_LOADING, NOTIFY, SET_SIDEBAR_FOLDABLE, SET_SIDEBAR_SHOW, SET_USER_SETTING, SET_IS_MOBILE } from './ActionType';
+import { AuthToken } from '../api/auth';
+import { DEFAULT_REDUX_AUTH_STATE, DEFAULT_REDUX_RESIGN_STATE, DEFAULT_REDUX_SYSTEM_SETTING_STATE, ReduxAuthState, ReduxResignState, ReduxSystemSettingState } from './Selector';
+import { LOGIN, LOGOUT, SET_LOADING, NOTIFY, SET_SIDEBAR_FOLDABLE, SET_SIDEBAR_SHOW, SET_IS_MOBILE, SET_LEADING_STAMP_CARDS, SET_USER_INFO } from './ActionType';
 import { removeAuthToken, setAuthToken, setSidebarFoldable, setSidebarShow } from './StateHolder';
 import { Action } from '../util/Interface';
+import { StampCard, UserInfo } from '../api/resign';
 
-const authReducer = (state: ReduxAuthState = DEFAULT_REDUX_AUTH_STATE, action: Action<AuthToken | UserSetting>): ReduxAuthState => {
+const authReducer = (state: ReduxAuthState = DEFAULT_REDUX_AUTH_STATE, action: Action<AuthToken>): ReduxAuthState => {
     const newState: ReduxAuthState = { ...state };
     const { type, payload } = action;
     if (type === LOGIN) {
@@ -22,19 +23,26 @@ const authReducer = (state: ReduxAuthState = DEFAULT_REDUX_AUTH_STATE, action: A
         } else {
             removeAuthToken();
             newState.authToken = undefined;
-            newState.userSetting = undefined;
             window.location.replace('/#/login');
         }
     } else if (type === LOGOUT) {
         removeAuthToken();
         newState.authToken = undefined;
         window.location.replace('/#/login');
-    } else if (type === SET_USER_SETTING) {
-        newState.userSetting = payload as UserSetting;
     }
     return newState;
 };
 
+const resignReducer = (state: ReduxResignState = DEFAULT_REDUX_RESIGN_STATE, action: Action<UserInfo | StampCard[]>): ReduxResignState => {
+    const newState: ReduxResignState = { ...state };
+    const { type, payload } = action;
+    if (type === SET_USER_INFO) {
+        newState.userInfo = payload as UserInfo;
+    } else if (type === SET_LEADING_STAMP_CARDS) {
+        newState.leadingStampCards = payload as StampCard[];
+    }
+    return newState;
+}
 
 const systemReducer = (state: ReduxSystemSettingState = DEFAULT_REDUX_SYSTEM_SETTING_STATE, action: Action<boolean | string>): ReduxSystemSettingState => {
     const newState: ReduxSystemSettingState = { ...state };
@@ -58,6 +66,7 @@ const systemReducer = (state: ReduxSystemSettingState = DEFAULT_REDUX_SYSTEM_SET
 
 const reducers = [
     { key: 'auth', reducer: authReducer },
+    { key: 'resign', reducer: resignReducer },
     { key: 'setting', reducer: systemReducer }
 ];
 

@@ -60,8 +60,8 @@ class Login extends React.Component<LoginProps, LoginState> {
                                 <CCard className='p-4'>
                                     <CCardBody>
                                         <CForm onKeyDown={AppUtil.bindEnterKey(this.onLoginClick)}>
-                                            <h1>Login</h1>
-                                            <p className='text-body-secondary'>Sign In to your account</p>
+                                            <h1>登入</h1>
+                                            <p className='text-body-secondary'>看看你的離職集點卡</p>
                                             <CInputGroup className='mb-3'>
                                                 <CInputGroupText>
                                                     <CIcon icon={cilUser} />
@@ -89,7 +89,7 @@ class Login extends React.Component<LoginProps, LoginState> {
                                             <CRow>
                                                 <CCol xs={6}>
                                                     <CButton color='primary' className='px-4' onClick={this.onLoginClick}>
-                                                        Login
+                                                        登入
                                                     </CButton>
                                                 </CCol>
                                             </CRow>

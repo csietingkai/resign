@@ -17,6 +17,6 @@ public class StampCard {
 	@Id
 	@GeneratedValue(strategy = GenerationType.AUTO)
 	protected UUID id;
-	protected UUID userId;
+	protected String userName;
 	protected Integer point = 0;
 }

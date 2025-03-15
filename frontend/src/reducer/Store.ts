@@ -1,7 +1,8 @@
 import { Dispatch, legacy_createStore as createStore } from 'redux';
 import rootReducer from './Reducer';
-import AuthApi, { AuthResponse, AuthToken, UserResponse } from '../api/auth';
-import { Login, Logout, SetIsMobile, SetUserSetting } from './Action';
+import AuthApi, { AuthResponse, AuthToken } from '../api/auth';
+import ResignApi, { LeadingStampCardsResponse, UserInfoResponse } from '../api/resign';
+import { Login, Logout, SetIsMobile, SetLeadingStampCards, SetUserInfo } from './Action';
 import { ReduxState, getAuthTokenString } from './Selector';
 import { Action, ApiResponse } from '../util/Interface';
 import { getAuthToken } from './StateHolder';
@@ -35,13 +36,26 @@ export const init = (dispatch: Dispatch<Action<any>>, getState: () => ReduxState
     const tokenString: string = getAuthTokenString(getState());
 
     if (tokenString) {
-        apis.push(AuthApi.getUserSetting());
-        responseHandlers.push((response: UserResponse) => {
+        apis.push(ResignApi.getUserInfo());
+        responseHandlers.push((response: UserInfoResponse) => {
             const { success, data } = response;
             if (success) {
-                dispatch(SetUserSetting(data));
+                if (!data?.signed) {
+                    ResignApi.postInit();
+                }
+                dispatch(SetUserInfo(data));
+            }
+        });
+    }
+
+    if (tokenString) {
+        apis.push(ResignApi.getLeading());
+        responseHandlers.push((response: LeadingStampCardsResponse) => {
+            const { success, data } = response;
+            if (success) {
+                dispatch(SetLeadingStampCards(data));
             } else {
-                dispatch(SetUserSetting(undefined));
+                dispatch(SetLeadingStampCards([]));
             }
         });
     }

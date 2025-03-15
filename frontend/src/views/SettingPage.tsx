@@ -1,16 +1,14 @@
 import React, { Dispatch } from 'react';
 import { connect } from 'react-redux';
 import { CButton, CCard, CCardBody, CCardFooter, CCardHeader, CCol, CForm, CFormInput, CFormLabel, CRow } from '@coreui/react';
-import { ReduxState, getAuthTokenName, getUserSetting } from '../reducer/Selector';
-import { SetNotifyDispatcher, SetUserSettingDispatcher } from '../reducer/PropsMapper';
-import AuthApi, { UserSetting } from '../api/auth';
+import { ReduxState, getAuthTokenName } from '../reducer/Selector';
+import { SetNotifyDispatcher } from '../reducer/PropsMapper';
+import AuthApi, {  } from '../api/auth';
 import * as AppUtil from '../util/AppUtil';
 import { Action } from '../util/Interface';
 
 export interface SettingPageProps {
     username: string;
-    userSetting: UserSetting;
-    setUserSetting: (setting: UserSetting) => void;
     notify: (message: string) => void;
 }
 
@@ -26,7 +24,7 @@ class SettingPage extends React.Component<SettingPageProps, SettingPageState> {
 
     constructor(props: SettingPageProps) {
         super(props);
-        const { username, userSetting } = props;
+        const { username } = props;
         this.state = {
             userForm: {
                 username: username,
@@ -123,15 +121,13 @@ class SettingPage extends React.Component<SettingPageProps, SettingPageState> {
 
 const mapStateToProps = (state: ReduxState) => {
     return {
-        username: getAuthTokenName(state),
-        userSetting: getUserSetting(state)
+        username: getAuthTokenName(state)
     };
 };
 
-const mapDispatchToProps = (dispatch: Dispatch<Action<string | UserSetting | undefined>>) => {
+const mapDispatchToProps = (dispatch: Dispatch<Action<string | undefined>>) => {
     return {
-        notify: SetNotifyDispatcher(dispatch),
-        setUserSetting: SetUserSettingDispatcher(dispatch)
+        notify: SetNotifyDispatcher(dispatch)
     };
 };
 

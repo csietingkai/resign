@@ -12,11 +12,11 @@ import lombok.Data;
 
 @Entity
 @Data
-@Table(name = DatabaseConstant.TABLE_USER_SETTING)
-public class UserSetting {
+@Table(name = DatabaseConstant.TABLE_USER_INFO)
+public class UserInfo {
 	@Id
 	@GeneratedValue(strategy = GenerationType.AUTO)
 	protected UUID id;
-	protected UUID userId;
-	protected Boolean pwdChanged;
+	protected String userName;
+	protected Boolean signed;
 }
