@@ -1,7 +1,7 @@
 import * as StateHolder from './StateHolder';
 import { AuthToken } from '../api/auth';
 import { Notification } from '../util/Interface';
-import { StampCard, UserInfo } from '../api/resign';
+import { DeptCoworkerInfo, StampCard, StampCardInfo, UserInfo } from '../api/resign';
 
 export interface ReduxState {
     auth: ReduxAuthState;
@@ -27,14 +27,20 @@ export const getAuthTokenExpiryDate = (state: ReduxState): Date => getAuthToken(
 // resignReducer
 export interface ReduxResignState {
     userInfo: UserInfo | undefined;
+    stampCardInfo: StampCardInfo | undefined;
+    deptCoworkerOptions: DeptCoworkerInfo[];
     leadingStampCards: StampCard[];
 }
 export const DEFAULT_REDUX_RESIGN_STATE: ReduxResignState = {
     userInfo: undefined,
+    stampCardInfo: undefined,
+    deptCoworkerOptions: [],
     leadingStampCards: []
 };
 const getResignState = (state: ReduxState): ReduxResignState => state.resign;
 export const getUserInfo = (state: ReduxState): UserInfo => getResignState(state)?.userInfo as UserInfo;
+export const getStampCardInfo = (state: ReduxState): StampCardInfo => getResignState(state)?.stampCardInfo as StampCardInfo;
+export const getDeptCoworkerOptions = (state: ReduxState): DeptCoworkerInfo[] => getResignState(state).deptCoworkerOptions;
 export const getLeadingStampCards = (state: ReduxState): StampCard[] => getResignState(state).leadingStampCards;
 
 // system variable

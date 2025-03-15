@@ -1,8 +1,10 @@
 package io.tingkai.resign.controller;
 
 import java.util.List;
+import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -14,8 +16,12 @@ import io.tingkai.base.model.exception.NotExistException;
 import io.tingkai.base.model.response.SimpleResponse;
 import io.tingkai.resign.constant.MessageConstant;
 import io.tingkai.resign.entity.StampCard;
+import io.tingkai.resign.entity.StampCardRecord;
 import io.tingkai.resign.entity.UserInfo;
+import io.tingkai.resign.model.request.InsertStampCardRecordRequest;
 import io.tingkai.resign.model.response.ResignResponse;
+import io.tingkai.resign.model.vo.DeptCoworkerInfo;
+import io.tingkai.resign.model.vo.StampCardInfo;
 import io.tingkai.resign.service.ResignService;
 
 @RestController
@@ -23,26 +29,53 @@ import io.tingkai.resign.service.ResignService;
 public class ResignController {
 
 	public static final String CONROLLER_PREFIX = "/resign";
-	public static final String RESIGN_GET_USERINFO_PATH = "/userInfo";
-	public static final String RESIGN_POST_INIT_PATH = "/postInit";
-	public static final String RESIGN_GET_LEADERBOARD_PATH = "/leaderBoard";
+	public static final String GET_USER_INFO_PATH = "/userInfo";
+	public static final String POST_INIT_PATH = "/postInit";
+	public static final String STAMP_CARD_PATH = "/stampCard";
+	public static final String STAMP_CARD_RECORD_PATH = "/stampCardRecord";
+	public static final String COWORKER_PATH = "/coworker";
+	public static final String GET_LEADERBOARD_PATH = "/leaderBoard";
 
 	@Autowired
 	private ResignService resignService;
 
-	@RequestMapping(value = ResignController.RESIGN_GET_USERINFO_PATH, method = RequestMethod.GET)
+	@RequestMapping(value = ResignController.GET_USER_INFO_PATH, method = RequestMethod.GET)
 	public ResignResponse<UserInfo> getUserInfo() {
 		UserInfo userInfo = resignService.getUserInfo();
 		return new ResignResponse<UserInfo>(true, userInfo, MessageConstant.SUCCESS);
 	}
 
-	@RequestMapping(value = ResignController.RESIGN_POST_INIT_PATH, method = RequestMethod.POST)
+	@RequestMapping(value = ResignController.POST_INIT_PATH, method = RequestMethod.POST)
 	public SimpleResponse postInit() throws AlreadyExistException, FieldMissingException, NotExistException {
 		resignService.postInit();
 		return new SimpleResponse(true);
 	}
 
-	@RequestMapping(value = ResignController.RESIGN_GET_LEADERBOARD_PATH, method = RequestMethod.GET)
+	@RequestMapping(value = ResignController.STAMP_CARD_PATH, method = RequestMethod.GET)
+	public ResignResponse<StampCardInfo> getStampCardInfo() throws FieldMissingException, NotExistException {
+		StampCardInfo info = resignService.getStampCardInfo();
+		return new ResignResponse<StampCardInfo>(true, info, MessageConstant.SUCCESS);
+	}
+
+	@RequestMapping(value = ResignController.STAMP_CARD_RECORD_PATH, method = RequestMethod.GET)
+	public ResignResponse<StampCardRecord> fetchStampCardRecord(@RequestParam UUID id) throws FieldMissingException, NotExistException {
+		StampCardRecord stampCardRecord = resignService.fetchStampCardRecord(id);
+		return new ResignResponse<StampCardRecord>(true, stampCardRecord, MessageConstant.SUCCESS);
+	}
+
+	@RequestMapping(value = ResignController.STAMP_CARD_RECORD_PATH, method = RequestMethod.POST)
+	public SimpleResponse insertStampCardRecord(@RequestBody InsertStampCardRecordRequest stampCardRecord) throws FieldMissingException, NotExistException {
+		resignService.insertStampCardRecord(stampCardRecord.toEntity());
+		return new SimpleResponse(true);
+	}
+
+	@RequestMapping(value = ResignController.COWORKER_PATH, method = RequestMethod.GET)
+	public ResignResponse<List<DeptCoworkerInfo>> getCoworkerOptions() throws FieldMissingException, NotExistException {
+		List<DeptCoworkerInfo> infos = resignService.getCoworkerOptions();
+		return new ResignResponse<List<DeptCoworkerInfo>>(true, infos, MessageConstant.SUCCESS);
+	}
+
+	@RequestMapping(value = ResignController.GET_LEADERBOARD_PATH, method = RequestMethod.GET)
 	public ResignResponse<List<StampCard>> getStampCards(@RequestParam int size) {
 		List<StampCard> cards = resignService.getLeadingStampCards(size);
 		return new ResignResponse<List<StampCard>>(true, cards, MessageConstant.SUCCESS);

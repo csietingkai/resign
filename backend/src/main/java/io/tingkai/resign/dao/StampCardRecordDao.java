@@ -1,5 +1,6 @@
 package io.tingkai.resign.dao;
 
+import java.util.List;
 import java.util.UUID;
 
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -9,4 +10,6 @@ import io.tingkai.resign.entity.StampCardRecord;
 
 @Repository
 public interface StampCardRecordDao extends JpaRepository<StampCardRecord, UUID> {
+
+	public List<StampCardRecord> findByCardId(UUID cardId);
 }

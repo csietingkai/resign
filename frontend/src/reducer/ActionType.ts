@@ -4,6 +4,8 @@ export const LOGOUT: string = 'LOGOUT';
 
 // resign
 export const SET_USER_INFO: string = 'SET_USER_INFO';
+export const SET_STAMP_CARD_INFO: string = 'SET_STAMP_CARD_INFO';
+export const SET_DEPT_COWORKER_OPTIONS: string = 'SET_DEPT_COWORKER_OPTIONS';
 export const SET_LEADING_STAMP_CARDS: string = 'SET_LEADING_STAMP_CARDS';
 
 // system setting

@@ -2,10 +2,10 @@ import { combineReducers } from 'redux';
 import axios from 'axios';
 import { AuthToken } from '../api/auth';
 import { DEFAULT_REDUX_AUTH_STATE, DEFAULT_REDUX_RESIGN_STATE, DEFAULT_REDUX_SYSTEM_SETTING_STATE, ReduxAuthState, ReduxResignState, ReduxSystemSettingState } from './Selector';
-import { LOGIN, LOGOUT, SET_LOADING, NOTIFY, SET_SIDEBAR_FOLDABLE, SET_SIDEBAR_SHOW, SET_IS_MOBILE, SET_LEADING_STAMP_CARDS, SET_USER_INFO } from './ActionType';
+import { LOGIN, LOGOUT, SET_LOADING, NOTIFY, SET_SIDEBAR_FOLDABLE, SET_SIDEBAR_SHOW, SET_IS_MOBILE, SET_LEADING_STAMP_CARDS, SET_USER_INFO, SET_STAMP_CARD_INFO, SET_DEPT_COWORKER_OPTIONS } from './ActionType';
 import { removeAuthToken, setAuthToken, setSidebarFoldable, setSidebarShow } from './StateHolder';
 import { Action } from '../util/Interface';
-import { StampCard, UserInfo } from '../api/resign';
+import { DeptCoworkerInfo, StampCard, StampCardInfo, UserInfo } from '../api/resign';
 
 const authReducer = (state: ReduxAuthState = DEFAULT_REDUX_AUTH_STATE, action: Action<AuthToken>): ReduxAuthState => {
     const newState: ReduxAuthState = { ...state };
@@ -33,11 +33,15 @@ const authReducer = (state: ReduxAuthState = DEFAULT_REDUX_AUTH_STATE, action: A
     return newState;
 };
 
-const resignReducer = (state: ReduxResignState = DEFAULT_REDUX_RESIGN_STATE, action: Action<UserInfo | StampCard[]>): ReduxResignState => {
+const resignReducer = (state: ReduxResignState = DEFAULT_REDUX_RESIGN_STATE, action: Action<UserInfo | StampCardInfo | DeptCoworkerInfo[] | StampCard[]>): ReduxResignState => {
     const newState: ReduxResignState = { ...state };
     const { type, payload } = action;
     if (type === SET_USER_INFO) {
         newState.userInfo = payload as UserInfo;
+    } else if (type === SET_STAMP_CARD_INFO) {
+        newState.stampCardInfo = payload as StampCardInfo;
+    } else if (type === SET_DEPT_COWORKER_OPTIONS) {
+        newState.deptCoworkerOptions = payload as DeptCoworkerInfo[];
     } else if (type === SET_LEADING_STAMP_CARDS) {
         newState.leadingStampCards = payload as StampCard[];
     }

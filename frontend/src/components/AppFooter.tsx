@@ -11,8 +11,8 @@ class AppFooter extends React.Component<AppFooterProps, AppFooterState> {
         return (
             <CFooter className='px-4'>
                 <div>
-                    <a href='https://github.com/csietingkai/money' target='_blank' rel='noopener noreferrer'>
-                        Tingkai Money App
+                    <a href='https://github.com/csietingkai/resign' target='_blank' rel='noopener noreferrer'>
+                        BI Resign Stamp Card App
                     </a>
                 </div>
                 <div className='ms-auto'>
