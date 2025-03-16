@@ -1,5 +1,6 @@
 package io.tingkai.resign.controller;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
 
@@ -33,6 +34,7 @@ public class ResignController {
 	public static final String POST_INIT_PATH = "/postInit";
 	public static final String STAMP_CARD_PATH = "/stampCard";
 	public static final String STAMP_CARD_RECORD_PATH = "/stampCardRecord";
+	public static final String STAMP_CARD_RECORDS_PATH = "/stampCardRecords";
 	public static final String COWORKER_PATH = "/coworker";
 	public static final String GET_LEADERBOARD_PATH = "/leaderBoard";
 
@@ -67,6 +69,12 @@ public class ResignController {
 	public SimpleResponse insertStampCardRecord(@RequestBody InsertStampCardRecordRequest stampCardRecord) throws FieldMissingException, NotExistException {
 		resignService.insertStampCardRecord(stampCardRecord.toEntity());
 		return new SimpleResponse(true);
+	}
+
+	@RequestMapping(value = ResignController.STAMP_CARD_RECORDS_PATH, method = RequestMethod.GET)
+	public ResignResponse<List<StampCardRecord>> fetchStampCardRecords(@RequestParam(required = false) LocalDate startDate, @RequestParam(required = false) LocalDate endDate, @RequestParam(required = false) String dept, @RequestParam(required = false) UUID coworkerId) throws FieldMissingException, NotExistException {
+		List<StampCardRecord> stampCardRecords = resignService.fetchStampCardRecords(startDate, endDate, dept, coworkerId);
+		return new ResignResponse<List<StampCardRecord>>(true, stampCardRecords, MessageConstant.SUCCESS);
 	}
 
 	@RequestMapping(value = ResignController.COWORKER_PATH, method = RequestMethod.GET)

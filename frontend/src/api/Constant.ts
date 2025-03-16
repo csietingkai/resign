@@ -12,5 +12,6 @@ export const GET_USER_INFO_PATH: string = RESIGN_API_PREFIX + '/userInfo';
 export const POST_INIT_PATH: string = RESIGN_API_PREFIX + '/postInit';
 export const STAMP_CARD_PATH: string = RESIGN_API_PREFIX + '/stampCard';
 export const STAMP_CARD_RECORD_PATH: string = RESIGN_API_PREFIX + '/stampCardRecord';
+export const STAMP_CARD_RECORDS_PATH: string = RESIGN_API_PREFIX + '/stampCardRecords';
 export const COWORKER_PATH: string = RESIGN_API_PREFIX + '/coworker';
 export const GET_LEADERBOARD_PATH: string = RESIGN_API_PREFIX + '/leaderBoard';

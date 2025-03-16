@@ -1,11 +1,16 @@
 package io.tingkai.resign.service;
 
+import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -103,6 +108,20 @@ public class ResignService {
 		stampCard = stampCardFacade.update(stampCard);
 
 		stampCardRecord = stampCardRecordFacade.insert(stampCardRecord);
+	}
+
+	public List<StampCardRecord> fetchStampCardRecords(@Nullable LocalDate startDate, @Nullable LocalDate endDate, @Nullable String dept, @Nullable UUID coworkerId) {
+		List<StampCardRecord> stampCardRecords = stampCardRecordFacade.queryByDateAndcoWorkerId(startDate, endDate, coworkerId);
+		if (BaseStringUtil.isBlank(dept)) {
+			return stampCardRecords;
+		}
+		List<Coworker> coworkers = coworkerFacade.queryAll();
+		Map<UUID, String> belongToDept = new HashMap<UUID, String>();
+		for (Coworker coworker : coworkers) {
+			belongToDept.put(coworker.getId(), coworker.getDept());
+		}
+		stampCardRecords = stampCardRecords.stream().filter(x -> BaseStringUtil.equals(belongToDept.get(x.getCoworkerId()), dept)).collect(Collectors.toList());
+		return stampCardRecords;
 	}
 
 	public List<DeptCoworkerInfo> getCoworkerOptions() {
