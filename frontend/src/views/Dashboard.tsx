@@ -1,16 +1,12 @@
 import React, { Dispatch } from 'react';
-import moment from 'moment';
 import { connect } from 'react-redux';
-import { CButton, CCard, CCardBody, CCol, CForm, CFormInput, CFormLabel, CFormSelect, CFormTextarea, CModal, CModalBody, CModalFooter, CModalHeader, CModalTitle, CRow } from '@coreui/react';
+import { CCard, CCardBody, CCol, CRow } from '@coreui/react';
 import { SetNotifyDispatcher, SetStampCardInfoDispatcher, SetUserInfoDispatcher } from '../reducer/PropsMapper';
 import { getDeptCoworkerOptions, getStampCardInfo, ReduxState } from '../reducer/Selector';
-import ResignApi, { Coworker, DeptCoworkerInfo, StampCardInfo, StampCardRecord, UserInfo } from '../api/resign';
+import ResignApi, { DeptCoworkerInfo, StampCardInfo, StampCardRecord, UserInfo } from '../api/resign';
 import * as AppUtil from '../util/AppUtil';
 import { Action } from '../util/Interface';
-
-interface StampCardRecordForm extends StampCardRecord {
-    dept: string;
-}
+import RecordModal, { RecordModalMode } from './include/RecordModal';
 
 export interface DashboardProps {
     stampCardInfo: StampCardInfo;
@@ -22,17 +18,8 @@ export interface DashboardProps {
 
 export interface DashboardState {
     cnt: number;
-    recordModalOpen: boolean;
-    recordModalMode: 'edit' | 'view' | '';
-    recordForm: StampCardRecordForm;
-    isRecordFormValid: {
-        date: boolean;
-        dept: boolean;
-        coworkerId: boolean;
-        point: boolean;
-    };
-    deptOptions: string[];
-    coworkerOptions: { [dept: string]: Coworker[]; };
+    recordModalMode: RecordModalMode;
+    currentRecordId?: string;
 }
 
 class Dashboard extends React.Component<DashboardProps, DashboardState> {
@@ -46,81 +33,12 @@ class Dashboard extends React.Component<DashboardProps, DashboardState> {
         }
         this.state = {
             cnt: 100,
-            recordModalOpen: false,
-            recordModalMode: '',
-            recordForm: {
-                id: '',
-                cardId: props.stampCardInfo?.id,
-                date: new Date(),
-                coworkerId: '',
-                point: 1,
-                dept: ''
-            },
-            isRecordFormValid: {
-                date: true,
-                dept: true,
-                coworkerId: true,
-                point: true
-            },
-            deptOptions: props.deptOptions.map(x => x.dept),
-            coworkerOptions
+            recordModalMode: ''
         };
     }
 
-    private openRecordModal = async (recordId?: string) => {
-        const { deptOptions } = this.props;
-        const { recordForm } = this.state;
-        if (recordId) {
-            const { data } = await ResignApi.fetchStampCardRecord(recordId);
-            recordForm.coworkerId = data.coworkerId;
-            recordForm.date = data.date;
-            recordForm.dept = deptOptions.find(d => d.coworkers.findIndex(c => c.id === data.coworkerId) >= 0)?.dept || '';
-            recordForm.coworkerId = data.coworkerId;
-            recordForm.description = data.description;
-        }
-        this.setState({ recordModalMode: !!recordId ? 'view' : 'edit', recordModalOpen: true });
-    };
-
-    private onRecordModalSubmit = async () => {
-        const { setUserInfo, setStampCardInfo, notify } = this.props;
-        const { recordForm, isRecordFormValid } = this.state;
-        if (!isRecordFormValid.date) {
-            this.setState({ isRecordFormValid: { ...isRecordFormValid, date: false } });
-            notify('日期為必填');
-            return;
-        }
-        if (!isRecordFormValid.point) {
-            this.setState({ isRecordFormValid: { ...isRecordFormValid, point: false } });
-            notify('章數為必填');
-            return;
-        }
-        if (!isRecordFormValid.dept || !isRecordFormValid.coworkerId) {
-            this.setState({ isRecordFormValid: { ...isRecordFormValid, dept: false, coworkerId: false } });
-            notify('搞事仔為必填');
-            return;
-        }
-        const { success, message } = await ResignApi.insertStampCardRecord({ ...recordForm, date: AppUtil.toDateStr(recordForm.date, 'YYYY-MM-DD') || '' });
-        if (success) {
-            notify(`蓋了${recordForm.point}個章！`);
-            ResignApi.getUserInfo().then(({ data }) => setUserInfo(data));
-            ResignApi.getStampCardInfo().then(({ data }) => setStampCardInfo(data));
-            this.closeRecordModal();
-        } else {
-            notify(message);
-        }
-    };
-
-    private closeRecordModal = () => {
-        const { stampCardInfo } = this.props;
-        const recordForm: StampCardRecordForm = {
-            id: '',
-            cardId: stampCardInfo?.id,
-            date: new Date(),
-            coworkerId: '',
-            point: 1,
-            dept: ''
-        };
-        this.setState({ recordModalMode: '', recordModalOpen: false, recordForm });
+    private openRecordModal = (recordId?: string) => {
+        this.setState({ recordModalMode: !!recordId ? 'view' : 'edit', currentRecordId: recordId });
     };
 
     private renderStamps = (): React.ReactNode[] => {
@@ -145,123 +63,26 @@ class Dashboard extends React.Component<DashboardProps, DashboardState> {
         return cubes;
     };
 
-    private renderRecordModal = (): React.ReactNode => {
-        const { cnt, recordModalOpen, recordModalMode, recordForm, isRecordFormValid, deptOptions, coworkerOptions } = this.state;
-        return (
-            <CModal alignment='center' visible={recordModalOpen} onClose={this.closeRecordModal}>
-                <CModalHeader>
-                    <CModalTitle>離職戳章</CModalTitle>
-                </CModalHeader>
-                <CModalBody>
-                    <CForm onKeyDown={recordModalMode === 'edit' ? AppUtil.bindEnterKey(this.onRecordModalSubmit) : undefined}>
-                        <CRow className='mb-3'>
-                            <CFormLabel htmlFor='record-date' className='col-sm-4 col-form-label required'>
-                                日期
-                            </CFormLabel>
-                            <div className='col-sm-8'>
-                                <input
-                                    type='date'
-                                    id='record-date'
-                                    className={`form-control${!isRecordFormValid.date ? ' is-invalid' : ''}`}
-                                    value={moment(recordForm.date).format('YYYY-MM-DD')}
-                                    onChange={(event) => {
-                                        const date: Date = new Date(event.target.value);
-                                        isRecordFormValid.date = !isNaN((date as any)?.getTime());
-                                        this.setState({ recordForm: { ...recordForm, date }, isRecordFormValid });
-                                    }}
-                                />
-                            </div>
-                        </CRow>
-                        <CRow className='mb-3'>
-                            <CFormLabel htmlFor='record-point' className='col-sm-4 col-form-label required'>
-                                蓋幾個章
-                            </CFormLabel>
-                            <div className='col-sm-8'>
-                                <CFormInput
-                                    type='number'
-                                    id='record-point'
-                                    value={recordForm.point}
-                                    min={1}
-                                    max={cnt}
-                                    className={`form-control${!isRecordFormValid.point ? ' is-invalid' : ''}`}
-                                    onChange={(event) => {
-                                        const point: number = AppUtil.toNumber(event.target.value);
-                                        isRecordFormValid.point = !!point;
-                                        this.setState({ recordForm: { ...recordForm, point } });
-                                    }}
-                                />
-                            </div>
-                        </CRow>
-                        <CRow className='mb-3'>
-                            <CFormLabel htmlFor='record-dept' className='col-sm-4 col-form-label required'>
-                                是誰在搞
-                            </CFormLabel>
-                            <div className='col-sm-8'>
-                                <div className='row'>
-                                    <div className='col-sm-6 mb-2'>
-                                        <CFormSelect
-                                            value={recordForm.dept}
-                                            id='record-dept'
-                                            className={`form-control${!isRecordFormValid.dept ? ' is-invalid' : ''}`}
-                                            onChange={(event) => {
-                                                const dept: string = event.target.value as string;
-                                                isRecordFormValid.dept = !!dept;
-                                                isRecordFormValid.coworkerId = false;
-                                                this.setState({ recordForm: { ...recordForm, dept, coworkerId: '' }, isRecordFormValid });
-                                            }}
-                                        >
-                                            <option value=''>選擇部門</option>
-                                            {deptOptions.map(o => <option key={`record-dept-option-${o}`} value={o}>{o}</option>)}
-                                        </CFormSelect>
-                                    </div>
-                                    <div className='col-sm-6'>
-                                        <CFormSelect
-                                            value={recordForm.coworkerId}
-                                            id='record-coworkerId'
-                                            className={`form-control${!isRecordFormValid.coworkerId ? ' is-invalid' : ''}`}
-                                            onChange={(event) => {
-                                                const coworkerId: string = event.target.value as string;
-                                                isRecordFormValid.coworkerId = !!coworkerId;
-                                                this.setState({ recordForm: { ...recordForm, coworkerId }, isRecordFormValid });
-                                            }}
-                                        >
-                                            <option value=''>選擇搞事仔</option>
-                                            {coworkerOptions[recordForm.dept]?.map(o => <option key={`record-coworker-option-${o.id}`} value={o.id}>{o.name} {o.ename}</option>)}
-                                        </CFormSelect>
-                                    </div>
-                                </div>
-                            </div>
-                        </CRow>
-                        <CRow className='mb-3'>
-                            <CFormLabel htmlFor='record-description' className='col-sm-4 col-form-label'>
-                                發生了啥
-                            </CFormLabel>
-                            <div className='col-sm-8'>
-                                <CFormTextarea
-                                    id='record-description'
-                                    value={recordForm.description}
-                                    rows={5}
-                                    onChange={(event: any) => this.setState({ recordForm: { ...recordForm, description: event.target.value as string } })}
-                                />
-                            </div>
-                        </CRow>
-                    </CForm>
-                </CModalBody>
-                <CModalFooter>
-                    {recordModalMode === 'edit' && <CButton color='primary' onClick={this.onRecordModalSubmit}>儲存</CButton>}
-                    <CButton color='secondary' onClick={this.closeRecordModal}>關閉</CButton>
-                </CModalFooter>
-            </CModal>
-        );
-    };
-
     render(): React.ReactNode {
+        const { stampCardInfo, deptOptions, setUserInfo, setStampCardInfo } = this.props;
+        const { recordModalMode, currentRecordId } = this.state;
         return (
             <React.Fragment>
                 <CRow className='mb-4' xs={{ gutter: 4 }}>
                     {this.renderStamps()}
                 </CRow>
-                {this.renderRecordModal()}
+                <RecordModal
+                    mode={recordModalMode}
+                    cardId={stampCardInfo.id}
+                    deptOptions={deptOptions}
+                    recordId={currentRecordId}
+                    onClose={() => this.setState({ recordModalMode: '', currentRecordId: undefined})}
+                    afterSubmit={() => {
+                        ResignApi.getUserInfo().then(({ data }) => setUserInfo(data));
+                        ResignApi.getStampCardInfo().then(({ data }) => setStampCardInfo(data));
+                        this.setState({ recordModalMode: '' });
+                    }}
+                />
             </React.Fragment>
         );
     }

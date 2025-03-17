@@ -1,9 +1,9 @@
 import React, { Dispatch } from 'react';
 import { connect } from 'react-redux';
 import moment from 'moment';
-import { CButton, CCard, CCardBody, CCardFooter, CCardHeader, CCol, CForm, CFormLabel, CFormSelect, CRow, CTable, CTableBody, CTableDataCell, CTableHead, CTableHeaderCell, CTableRow } from '@coreui/react';
+import { CButton, CButtonGroup, CCard, CCardBody, CCardFooter, CCardHeader, CCol, CForm, CFormLabel, CFormSelect, CRow, CTable, CTableBody, CTableDataCell, CTableHead, CTableHeaderCell, CTableRow } from '@coreui/react';
 import CIcon from '@coreui/icons-react';
-import { cilChevronDoubleRight, cilChevronRight } from '@coreui/icons';
+import { cilChevronDoubleRight, cilChevronRight, cilPencil, cilTrash } from '@coreui/icons';
 import ResignApi, { Coworker, DeptCoworkerInfo, StampCardRecord } from '../api/resign';
 import AppPagination from '../components/AppPagination';
 import { SetNotifyDispatcher } from '../reducer/PropsMapper';
@@ -26,7 +26,7 @@ export interface StampRecordPageState {
     isSearchConditionValid: {
         startDate: boolean;
         endDate: boolean;
-    }
+    };
     deptOptions: string[];
     coworkerOptions: { [dept: string]: Coworker[]; };
     coworkerInfo: { [coworkerId: string]: { dept: string, name: string, ename: string; }; };
@@ -119,7 +119,7 @@ class StampRecordPage extends React.Component<StampRecordPageProps, StampRecordP
                                                     onChange={(event) => {
                                                         const startDate: Date = new Date(event.target.value);
                                                         if (!isNaN((startDate as any)?.getTime()) && !isNaN((searchCondition.endDate as any)?.getTime())) {
-                                                            const isDateRangeValid = (AppUtil.toDateStr(startDate, 'YYYY-MM-DD') || '') <= (AppUtil.toDateStr(searchCondition.endDate, 'YYYY-MM-DD') || '')
+                                                            const isDateRangeValid = (AppUtil.toDateStr(startDate, 'YYYY-MM-DD') || '') <= (AppUtil.toDateStr(searchCondition.endDate, 'YYYY-MM-DD') || '');
                                                             isSearchConditionValid.startDate = isDateRangeValid;
                                                             isSearchConditionValid.endDate = isDateRangeValid;
                                                         }
@@ -137,7 +137,7 @@ class StampRecordPage extends React.Component<StampRecordPageProps, StampRecordP
                                                     onChange={(event) => {
                                                         const endDate: Date = new Date(event.target.value);
                                                         if (!isNaN((searchCondition.startDate as any)?.getTime()) && !isNaN((endDate as any)?.getTime())) {
-                                                            const isDateRangeValid = (AppUtil.toDateStr(searchCondition.startDate, 'YYYY-MM-DD') || '') <= (AppUtil.toDateStr(endDate, 'YYYY-MM-DD') || '')
+                                                            const isDateRangeValid = (AppUtil.toDateStr(searchCondition.startDate, 'YYYY-MM-DD') || '') <= (AppUtil.toDateStr(endDate, 'YYYY-MM-DD') || '');
                                                             isSearchConditionValid.startDate = isDateRangeValid;
                                                             isSearchConditionValid.endDate = isDateRangeValid;
                                                         }
@@ -212,6 +212,7 @@ class StampRecordPage extends React.Component<StampRecordPageProps, StampRecordP
                                         <CTableHeaderCell scope='col' className='text-nowrap text-center'>搞事仔</CTableHeaderCell>
                                         <CTableHeaderCell scope='col' className='text-nowrap text-center'>章數</CTableHeaderCell>
                                         <CTableHeaderCell scope='col' className='text-nowrap text-center'>事由</CTableHeaderCell>
+                                        <CTableHeaderCell scope='col'></CTableHeaderCell>
                                     </CTableRow>
                                 </CTableHead>
                                 <CTableBody>
@@ -229,6 +230,18 @@ class StampRecordPage extends React.Component<StampRecordPageProps, StampRecordP
                                                 <CTableDataCell className='text-nowrap text-center'>{coworkerInfo[r.coworkerId].name} {coworkerInfo[r.coworkerId].ename}</CTableDataCell>
                                                 <CTableDataCell className='text-nowrap text-center'>{r.point}</CTableDataCell>
                                                 <CTableDataCell>{r.description}</CTableDataCell>
+                                                <CTableDataCell>
+                                                    <CButtonGroup role='group'>
+                                                        <CButton
+                                                            color='danger'
+                                                            variant='outline'
+                                                            size='sm'
+                                                            onClick={() => this.setState({  })}
+                                                        >
+                                                            <CIcon icon={cilTrash}></CIcon>
+                                                        </CButton>
+                                                    </CButtonGroup>
+                                                </CTableDataCell>
                                             </CTableRow>
                                         )
                                     }
