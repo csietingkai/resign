@@ -25,6 +25,12 @@ export interface DashboardState {
     recordModalOpen: boolean;
     recordModalMode: 'edit' | 'view' | '';
     recordForm: StampCardRecordForm;
+    isRecordFormValid: {
+        date: boolean;
+        dept: boolean;
+        coworkerId: boolean;
+        point: boolean;
+    };
     deptOptions: string[];
     coworkerOptions: { [dept: string]: Coworker[]; };
 }
@@ -50,6 +56,12 @@ class Dashboard extends React.Component<DashboardProps, DashboardState> {
                 point: 1,
                 dept: ''
             },
+            isRecordFormValid: {
+                date: true,
+                dept: true,
+                coworkerId: true,
+                point: true
+            },
             deptOptions: props.deptOptions.map(x => x.dept),
             coworkerOptions
         };
@@ -71,7 +83,22 @@ class Dashboard extends React.Component<DashboardProps, DashboardState> {
 
     private onRecordModalSubmit = async () => {
         const { setUserInfo, setStampCardInfo, notify } = this.props;
-        const { recordForm } = this.state;
+        const { recordForm, isRecordFormValid } = this.state;
+        if (!isRecordFormValid.date) {
+            this.setState({ isRecordFormValid: { ...isRecordFormValid, date: false } });
+            notify('日期為必填');
+            return;
+        }
+        if (!isRecordFormValid.point) {
+            this.setState({ isRecordFormValid: { ...isRecordFormValid, point: false } });
+            notify('章數為必填');
+            return;
+        }
+        if (!isRecordFormValid.dept || !isRecordFormValid.coworkerId) {
+            this.setState({ isRecordFormValid: { ...isRecordFormValid, dept: false, coworkerId: false } });
+            notify('搞事仔為必填');
+            return;
+        }
         const { success, message } = await ResignApi.insertStampCardRecord({ ...recordForm, date: AppUtil.toDateStr(recordForm.date, 'YYYY-MM-DD') || '' });
         if (success) {
             notify(`蓋了${recordForm.point}個章！`);
@@ -104,7 +131,7 @@ class Dashboard extends React.Component<DashboardProps, DashboardState> {
             const backgroundColor: string = stampCardInfo?.extraInfos?.length <= i ? 'var(--cui-gray-300)' : 'var(--cui-danger)';
             const text: string = stampCardInfo?.extraInfos?.length <= i ? `${AppUtil.prefixZero(i + 1)}` : stampCardInfo.extraInfos[i].recordDate;
             cubes.push(
-                <CCol xs={4} sm={3} md={2} lg={1} key={`cell-${i}`} style={{ paddingLeft: 'calc(var(--cui-gutter-x) * 0.3)', paddingRight: 'calc(var(--cui-gutter-x) * 0.3)'}}>
+                <CCol xs={4} sm={3} md={2} lg={1} key={`cell-${i}`} style={{ paddingLeft: 'calc(var(--cui-gutter-x) * 0.3)', paddingRight: 'calc(var(--cui-gutter-x) * 0.3)' }}>
                     <CCard onClick={() => this.openRecordModal(stampCardInfo.extraInfos[i]?.recordId)}>
                         <CCardBody className='align-items-center' style={{ padding: '0.75rem 0.75rem' }}>
                             <div className='text-white p-2' style={{ backgroundColor }}>
@@ -119,7 +146,7 @@ class Dashboard extends React.Component<DashboardProps, DashboardState> {
     };
 
     private renderRecordModal = (): React.ReactNode => {
-        const { cnt, recordModalOpen, recordModalMode, recordForm, deptOptions, coworkerOptions } = this.state;
+        const { cnt, recordModalOpen, recordModalMode, recordForm, isRecordFormValid, deptOptions, coworkerOptions } = this.state;
         return (
             <CModal alignment='center' visible={recordModalOpen} onClose={this.closeRecordModal}>
                 <CModalHeader>
@@ -135,9 +162,13 @@ class Dashboard extends React.Component<DashboardProps, DashboardState> {
                                 <input
                                     type='date'
                                     id='record-date'
-                                    className='form-control'
+                                    className={`form-control${!isRecordFormValid.date ? ' is-invalid' : ''}`}
                                     value={moment(recordForm.date).format('YYYY-MM-DD')}
-                                    onChange={(event) => this.setState({ recordForm: { ...recordForm, date: new Date(event.target.value) } })}
+                                    onChange={(event) => {
+                                        const date: Date = new Date(event.target.value);
+                                        isRecordFormValid.date = !isNaN((date as any)?.getTime());
+                                        this.setState({ recordForm: { ...recordForm, date }, isRecordFormValid });
+                                    }}
                                 />
                             </div>
                         </CRow>
@@ -152,7 +183,12 @@ class Dashboard extends React.Component<DashboardProps, DashboardState> {
                                     value={recordForm.point}
                                     min={1}
                                     max={cnt}
-                                    onChange={(event) => this.setState({ recordForm: { ...recordForm, point: AppUtil.toNumber(event.target.value) } })}
+                                    className={`form-control${!isRecordFormValid.point ? ' is-invalid' : ''}`}
+                                    onChange={(event) => {
+                                        const point: number = AppUtil.toNumber(event.target.value);
+                                        isRecordFormValid.point = !!point;
+                                        this.setState({ recordForm: { ...recordForm, point } });
+                                    }}
                                 />
                             </div>
                         </CRow>
@@ -166,7 +202,13 @@ class Dashboard extends React.Component<DashboardProps, DashboardState> {
                                         <CFormSelect
                                             value={recordForm.dept}
                                             id='record-dept'
-                                            onChange={(event: any) => this.setState({ recordForm: { ...recordForm, dept: event.target.value as string, coworkerId: '' } })}
+                                            className={`form-control${!isRecordFormValid.dept ? ' is-invalid' : ''}`}
+                                            onChange={(event) => {
+                                                const dept: string = event.target.value as string;
+                                                isRecordFormValid.dept = !!dept;
+                                                isRecordFormValid.coworkerId = false;
+                                                this.setState({ recordForm: { ...recordForm, dept, coworkerId: '' }, isRecordFormValid });
+                                            }}
                                         >
                                             <option value=''>選擇部門</option>
                                             {deptOptions.map(o => <option key={`record-dept-option-${o}`} value={o}>{o}</option>)}
@@ -176,7 +218,12 @@ class Dashboard extends React.Component<DashboardProps, DashboardState> {
                                         <CFormSelect
                                             value={recordForm.coworkerId}
                                             id='record-coworkerId'
-                                            onChange={(event: any) => this.setState({ recordForm: { ...recordForm, coworkerId: event.target.value as string } })}
+                                            className={`form-control${!isRecordFormValid.coworkerId ? ' is-invalid' : ''}`}
+                                            onChange={(event) => {
+                                                const coworkerId: string = event.target.value as string;
+                                                isRecordFormValid.coworkerId = !!coworkerId;
+                                                this.setState({ recordForm: { ...recordForm, coworkerId }, isRecordFormValid });
+                                            }}
                                         >
                                             <option value=''>選擇搞事仔</option>
                                             {coworkerOptions[recordForm.dept]?.map(o => <option key={`record-coworker-option-${o.id}`} value={o.id}>{o.name} {o.ename}</option>)}

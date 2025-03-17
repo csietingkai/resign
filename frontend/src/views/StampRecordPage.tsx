@@ -23,6 +23,10 @@ export interface StampRecordPageState {
         dept: string;
         coworkerId: string;
     };
+    isSearchConditionValid: {
+        startDate: boolean;
+        endDate: boolean;
+    }
     deptOptions: string[];
     coworkerOptions: { [dept: string]: Coworker[]; };
     coworkerInfo: { [coworkerId: string]: { dept: string, name: string, ename: string; }; };
@@ -56,6 +60,10 @@ class StampRecordPage extends React.Component<StampRecordPageProps, StampRecordP
                 dept: '',
                 coworkerId: ''
             },
+            isSearchConditionValid: {
+                startDate: true,
+                endDate: true
+            },
             deptOptions: props.deptOptions.map(x => x.dept),
             coworkerOptions,
             coworkerInfo,
@@ -66,7 +74,12 @@ class StampRecordPage extends React.Component<StampRecordPageProps, StampRecordP
 
     private search = async () => {
         const { notify } = this.props;
-        const { searchCondition: { startDate, endDate, dept, coworkerId } } = this.state;
+        const { searchCondition: { startDate, endDate, dept, coworkerId }, isSearchConditionValid } = this.state;
+        const isValid: boolean = isSearchConditionValid.startDate && isSearchConditionValid.endDate;
+        if (!isValid) {
+            notify('日期起日不可大於訖日');
+            return;
+        }
         const { success, data, message } = await ResignApi.fetchStampCardRecords(startDate, endDate, dept, coworkerId);
         if (success) {
             this.setState({ searchResult: data, searchResultPage: 1 });
@@ -76,7 +89,7 @@ class StampRecordPage extends React.Component<StampRecordPageProps, StampRecordP
     };
 
     private renderSearchCondition = (): React.ReactNode => {
-        const { searchCondition, deptOptions, coworkerOptions } = this.state;
+        const { searchCondition, isSearchConditionValid, deptOptions, coworkerOptions } = this.state;
         return (
             <CRow>
                 <CCol sm={7} className='mx-auto'>
@@ -101,9 +114,17 @@ class StampRecordPage extends React.Component<StampRecordPageProps, StampRecordP
                                                 <input
                                                     type='date'
                                                     id='search-startDate'
-                                                    className='form-control'
+                                                    className={`form-control${!isSearchConditionValid.startDate ? ' is-invalid' : ''}`}
                                                     value={moment(searchCondition.startDate).format('YYYY-MM-DD')}
-                                                    onChange={(event) => this.setState({ searchCondition: { ...searchCondition, startDate: new Date(event.target.value) } })}
+                                                    onChange={(event) => {
+                                                        const startDate: Date = new Date(event.target.value);
+                                                        if (!isNaN((startDate as any)?.getTime()) && !isNaN((searchCondition.endDate as any)?.getTime())) {
+                                                            const isDateRangeValid = (AppUtil.toDateStr(startDate, 'YYYY-MM-DD') || '') <= (AppUtil.toDateStr(searchCondition.endDate, 'YYYY-MM-DD') || '')
+                                                            isSearchConditionValid.startDate = isDateRangeValid;
+                                                            isSearchConditionValid.endDate = isDateRangeValid;
+                                                        }
+                                                        this.setState({ searchCondition: { ...searchCondition, startDate }, isSearchConditionValid });
+                                                    }}
                                                 />
                                             </div>
                                             {'~'}
@@ -111,9 +132,17 @@ class StampRecordPage extends React.Component<StampRecordPageProps, StampRecordP
                                                 <input
                                                     type='date'
                                                     id='search-endDate'
-                                                    className='form-control'
+                                                    className={`form-control${!isSearchConditionValid.startDate ? ' is-invalid' : ''}`}
                                                     value={moment(searchCondition.endDate).format('YYYY-MM-DD')}
-                                                    onChange={(event) => this.setState({ searchCondition: { ...searchCondition, endDate: new Date(event.target.value) } })}
+                                                    onChange={(event) => {
+                                                        const endDate: Date = new Date(event.target.value);
+                                                        if (!isNaN((searchCondition.startDate as any)?.getTime()) && !isNaN((endDate as any)?.getTime())) {
+                                                            const isDateRangeValid = (AppUtil.toDateStr(searchCondition.startDate, 'YYYY-MM-DD') || '') <= (AppUtil.toDateStr(endDate, 'YYYY-MM-DD') || '')
+                                                            isSearchConditionValid.startDate = isDateRangeValid;
+                                                            isSearchConditionValid.endDate = isDateRangeValid;
+                                                        }
+                                                        this.setState({ searchCondition: { ...searchCondition, endDate }, isSearchConditionValid });
+                                                    }}
                                                 />
                                             </div>
                                         </div>
@@ -179,10 +208,10 @@ class StampRecordPage extends React.Component<StampRecordPageProps, StampRecordP
                             <CTable align='middle' responsive hover>
                                 <CTableHead>
                                     <CTableRow>
-                                        <CTableHeaderCell scope='col' className='text-nowrap'>日期</CTableHeaderCell>
-                                        <CTableHeaderCell scope='col' className='text-nowrap'>搞事仔</CTableHeaderCell>
-                                        <CTableHeaderCell scope='col' className='text-nowrap'>章數</CTableHeaderCell>
-                                        <CTableHeaderCell scope='col' className='text-nowrap'>事由</CTableHeaderCell>
+                                        <CTableHeaderCell scope='col' className='text-nowrap text-center'>日期</CTableHeaderCell>
+                                        <CTableHeaderCell scope='col' className='text-nowrap text-center'>搞事仔</CTableHeaderCell>
+                                        <CTableHeaderCell scope='col' className='text-nowrap text-center'>章數</CTableHeaderCell>
+                                        <CTableHeaderCell scope='col' className='text-nowrap text-center'>事由</CTableHeaderCell>
                                     </CTableRow>
                                 </CTableHead>
                                 <CTableBody>
@@ -197,7 +226,7 @@ class StampRecordPage extends React.Component<StampRecordPageProps, StampRecordP
                                         searchResult.map(r =>
                                             <CTableRow key={r.id}>
                                                 <CTableDataCell className='text-nowrap text-center'>{AppUtil.toDateStr(r.date)}</CTableDataCell>
-                                                <CTableDataCell className='text-nowrap'>{coworkerInfo[r.coworkerId].name} {coworkerInfo[r.coworkerId].ename}</CTableDataCell>
+                                                <CTableDataCell className='text-nowrap text-center'>{coworkerInfo[r.coworkerId].name} {coworkerInfo[r.coworkerId].ename}</CTableDataCell>
                                                 <CTableDataCell className='text-nowrap text-center'>{r.point}</CTableDataCell>
                                                 <CTableDataCell>{r.description}</CTableDataCell>
                                             </CTableRow>
