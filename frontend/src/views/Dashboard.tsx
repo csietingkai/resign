@@ -47,7 +47,7 @@ class Dashboard extends React.Component<DashboardProps, DashboardState> {
         const cubes: React.ReactNode[] = [];
         for (let i = 0; i < cnt; i++) {
             const backgroundColor: string = stampCardInfo?.extraInfos?.length <= i ? 'var(--cui-gray-300)' : 'var(--cui-danger)';
-            const text: string = stampCardInfo?.extraInfos?.length <= i ? `${AppUtil.prefixZero(i + 1)}` : stampCardInfo.extraInfos[i].recordDate;
+            const text: string = stampCardInfo?.extraInfos?.length <= i ? `${AppUtil.prefixZero(i + 1)}` : stampCardInfo?.extraInfos[i]?.recordDate;
             cubes.push(
                 <CCol xs={4} sm={3} md={2} lg={1} key={`cell-${i}`} style={{ paddingLeft: 'calc(var(--cui-gutter-x) * 0.3)', paddingRight: 'calc(var(--cui-gutter-x) * 0.3)' }}>
                     <CCard onClick={() => this.openRecordModal(stampCardInfo.extraInfos[i]?.recordId)}>
