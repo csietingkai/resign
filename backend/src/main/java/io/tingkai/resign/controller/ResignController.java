@@ -70,6 +70,12 @@ public class ResignController {
 		resignService.insertStampCardRecord(stampCardRecord.toEntity());
 		return new SimpleResponse(true);
 	}
+	
+	@RequestMapping(value = ResignController.STAMP_CARD_RECORD_PATH, method = RequestMethod.DELETE)
+	public SimpleResponse removeStampCardRecord(@RequestParam UUID recordId) throws FieldMissingException, NotExistException {
+		resignService.removeStampCardRecord(recordId);
+		return new SimpleResponse(true);
+	}
 
 	@RequestMapping(value = ResignController.STAMP_CARD_RECORDS_PATH, method = RequestMethod.GET)
 	public ResignResponse<List<StampCardRecord>> fetchStampCardRecords(@RequestParam(required = false) LocalDate startDate, @RequestParam(required = false) LocalDate endDate, @RequestParam(required = false) String dept, @RequestParam(required = false) UUID coworkerId) throws FieldMissingException, NotExistException {

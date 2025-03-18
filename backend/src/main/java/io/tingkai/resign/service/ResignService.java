@@ -110,6 +110,11 @@ public class ResignService {
 		stampCardRecord = stampCardRecordFacade.insert(stampCardRecord);
 	}
 
+	@Transactional
+	public void removeStampCardRecord(UUID recordId) {
+		stampCardRecordFacade.remove(recordId);
+	}
+
 	public List<StampCardRecord> fetchStampCardRecords(@Nullable LocalDate startDate, @Nullable LocalDate endDate, @Nullable String dept, @Nullable UUID coworkerId) {
 		List<StampCardRecord> stampCardRecords = stampCardRecordFacade.queryByDateAndcoWorkerId(startDate, endDate, coworkerId);
 		if (BaseStringUtil.isBlank(dept)) {
@@ -147,5 +152,6 @@ public class ResignService {
 	public List<StampCard> getLeadingStampCards(int size) {
 		return stampCardFacade.queryTop(size);
 	}
+
 
 }

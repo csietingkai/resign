@@ -25,13 +25,13 @@ class AppConfirmModal extends React.Component<AppConfirmModalProps, AppConfirmMo
                 <CModalBody>
                     <CRow className='mb-3'>
                         <CCol sm={12}>
-                            Are you sure you want to <span className='text-red'>DELETE</span>?
+                            確定要<span className='text-red'>刪除</span>嗎？
                         </CCol>
                     </CRow>
                 </CModalBody>
                 <CModalFooter>
-                    <CButton color='primary' onClick={() => onConfirm(true)}>Confirm</CButton>
-                    <CButton color='secondary' onClick={() => onConfirm(false)}>Cancel</CButton>
+                    <CButton color='primary' onClick={() => onConfirm(true)}>確定</CButton>
+                    <CButton color='secondary' onClick={() => onConfirm(false)}>取消</CButton>
                 </CModalFooter>
             </CModal>
         );

@@ -92,13 +92,19 @@ const insertStampCardRecord = async (stampCardRecord: InsertStampCardRecordReque
     return data;
 };
 
+const removeStampCardRecord = async (recordId: string): Promise<SimpleResponse> => {
+    const response = await axios.delete(STAMP_CARD_RECORD_PATH, { params: { recordId } });
+    const data: SimpleResponse = response.data;
+    return data;
+};
+
 const fetchStampCardRecords = async (startDate?: Date, endDate?: Date, dept?: string, coworkerId?: string): Promise<StampCardRecordsResponse> => {
     const params: any = { dept, coworkerId };
     if (!isNaN((startDate as any)?.getTime())) {
-        params.startDate = AppUtil.toDateStr(startDate, 'YYYY-MM-DD') || ''
+        params.startDate = AppUtil.toDateStr(startDate, 'YYYY-MM-DD') || '';
     }
     if (!isNaN((endDate as any)?.getTime())) {
-        params.endDate = AppUtil.toDateStr(endDate, 'YYYY-MM-DD') || ''
+        params.endDate = AppUtil.toDateStr(endDate, 'YYYY-MM-DD') || '';
     }
     const response = await axios.get(STAMP_CARD_RECORDS_PATH, { params });
     const data: StampCardRecordsResponse = response.data;
@@ -117,4 +123,4 @@ const getLeading = async (size: number = 5): Promise<LeadingStampCardsResponse> 
     return data;
 };
 
-export default { getUserInfo, postInit, getStampCardInfo, fetchStampCardRecord, insertStampCardRecord, fetchStampCardRecords, getDeptCoworkerOptions, getLeading };
+export default { getUserInfo, postInit, getStampCardInfo, fetchStampCardRecord, insertStampCardRecord, removeStampCardRecord, fetchStampCardRecords, getDeptCoworkerOptions, getLeading };

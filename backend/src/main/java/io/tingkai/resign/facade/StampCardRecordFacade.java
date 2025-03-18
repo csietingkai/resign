@@ -65,4 +65,8 @@ public class StampCardRecordFacade {
 		return stampCardRecordDao.save(entity);
 	}
 
+
+	public void remove(UUID id) {
+		this.stampCardRecordDao.deleteById(id);
+	}
 }

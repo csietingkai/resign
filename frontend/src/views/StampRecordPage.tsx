@@ -4,15 +4,18 @@ import moment from 'moment';
 import { CButton, CButtonGroup, CCard, CCardBody, CCardFooter, CCardHeader, CCol, CForm, CFormLabel, CFormSelect, CRow, CTable, CTableBody, CTableDataCell, CTableHead, CTableHeaderCell, CTableRow } from '@coreui/react';
 import CIcon from '@coreui/icons-react';
 import { cilChevronDoubleRight, cilChevronRight, cilPencil, cilTrash } from '@coreui/icons';
-import ResignApi, { Coworker, DeptCoworkerInfo, StampCardRecord } from '../api/resign';
+import ResignApi, { Coworker, DeptCoworkerInfo, StampCardInfo, StampCardRecord } from '../api/resign';
+import AppConfirmModal from '../components/AppConfirmModal';
 import AppPagination from '../components/AppPagination';
-import { SetNotifyDispatcher } from '../reducer/PropsMapper';
-import { getDeptCoworkerOptions, ReduxState } from '../reducer/Selector';
+import { SetNotifyDispatcher, SetStampCardInfoDispatcher } from '../reducer/PropsMapper';
+import { getDeptCoworkerOptions, getStampCardId, ReduxState } from '../reducer/Selector';
 import * as AppUtil from '../util/AppUtil';
 import { Action } from '../util/Interface';
 
 export interface StampRecordPageProps {
+    cardId: string;
     deptOptions: DeptCoworkerInfo[];
+    setStampCardInfo: (stampCardInfo: StampCardInfo) => void;
     notify: (message: string) => void;
 }
 
@@ -32,6 +35,8 @@ export interface StampRecordPageState {
     coworkerInfo: { [coworkerId: string]: { dept: string, name: string, ename: string; }; };
     searchResult: StampCardRecord[];
     searchResultPage: number;
+    showDeleteRecordModal: boolean;
+    holdingRecordId: string;
 }
 
 class StampRecordPage extends React.Component<StampRecordPageProps, StampRecordPageState> {
@@ -68,7 +73,9 @@ class StampRecordPage extends React.Component<StampRecordPageProps, StampRecordP
             coworkerOptions,
             coworkerInfo,
             searchResult: [],
-            searchResultPage: 1
+            searchResultPage: 1,
+            showDeleteRecordModal: false,
+            holdingRecordId: ''
         };
     }
 
@@ -87,6 +94,24 @@ class StampRecordPage extends React.Component<StampRecordPageProps, StampRecordP
             notify(message);
         }
     };
+
+    private refreshStampCardInfo = async (cardId: string = this.props.cardId) => {
+        const { setStampCardInfo, notify } = this.props;
+        const { success, data, message } = await ResignApi.getStampCardInfo();
+        if (success) {
+            setStampCardInfo(data);
+        } else {
+            notify(message);
+        }
+    }
+
+    private removeRecord = async (recordId: string = this.state.holdingRecordId) => {
+        const { notify } = this.props;
+        const { success, message } = await ResignApi.removeStampCardRecord(recordId);
+        if (!success) {
+            notify(message);
+        }
+    }
 
     private renderSearchCondition = (): React.ReactNode => {
         const { searchCondition, isSearchConditionValid, deptOptions, coworkerOptions } = this.state;
@@ -219,7 +244,7 @@ class StampRecordPage extends React.Component<StampRecordPageProps, StampRecordP
                                     {
                                         searchResult.length == 0 &&
                                         <CTableRow>
-                                            <CTableDataCell colSpan={4} className='text-center'>查無資料</CTableDataCell>
+                                            <CTableDataCell colSpan={5} className='text-center'>查無資料</CTableDataCell>
                                         </CTableRow>
                                     }
                                     {
@@ -236,7 +261,7 @@ class StampRecordPage extends React.Component<StampRecordPageProps, StampRecordP
                                                             color='danger'
                                                             variant='outline'
                                                             size='sm'
-                                                            onClick={() => this.setState({  })}
+                                                            onClick={() => this.setState({ showDeleteRecordModal: true, holdingRecordId: r.id })}
                                                         >
                                                             <CIcon icon={cilTrash}></CIcon>
                                                         </CButton>
@@ -256,21 +281,38 @@ class StampRecordPage extends React.Component<StampRecordPageProps, StampRecordP
     };
 
     render(): React.ReactNode {
+        const { cardId } = this.props;
+        const { showDeleteRecordModal } = this.state;
         return (
             <React.Fragment>
                 {this.renderSearchCondition()}
                 {this.renderSearchResult()}
+                <AppConfirmModal
+                    showModal={showDeleteRecordModal}
+                    headerText='刪除本次紀錄'
+                    onConfirm={async (result: boolean) => {
+                        if (result) {
+                            const { holdingRecordId } = this.state;
+                            await this.removeRecord(holdingRecordId);
+                            this.refreshStampCardInfo(cardId);
+                            this.search();
+                        }
+                        this.setState({ showDeleteRecordModal: false, holdingRecordId: '' });
+                    }}
+                />
             </React.Fragment>
         );
     }
 } const mapStateToProps = (state: ReduxState) => {
     return {
+        cardId: getStampCardId(state),
         deptOptions: getDeptCoworkerOptions(state)
     };
 };
 
-const mapDispatchToProps = (dispatch: Dispatch<Action<string>>) => {
+const mapDispatchToProps = (dispatch: Dispatch<Action<StampCardInfo | string | undefined>>) => {
     return {
+        setStampCardInfo: SetStampCardInfoDispatcher(dispatch),
         notify: SetNotifyDispatcher(dispatch)
     };
 };
