@@ -73,7 +73,7 @@ class Dashboard extends React.Component<DashboardProps, DashboardState> {
                 </CRow>
                 <RecordModal
                     mode={recordModalMode}
-                    cardId={stampCardInfo.id}
+                    cardId={stampCardInfo?.id || ''}
                     deptOptions={deptOptions}
                     recordId={currentRecordId}
                     onClose={() => this.setState({ recordModalMode: '', currentRecordId: undefined})}
