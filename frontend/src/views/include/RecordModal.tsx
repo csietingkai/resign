@@ -39,11 +39,7 @@ class RecordModal extends React.Component<RecordModalProps, RecordModalState> {
 
     constructor(props: RecordModalProps) {
         super(props);
-        const coworkerOptions = {};
-        for (const opt of props.deptOptions) {
-            const { dept, coworkers } = opt;
-            coworkerOptions[dept] = coworkers;
-        }
+        const { deptOptions, coworkerOptions } = this.handleOptions(props.deptOptions);
         const form = this.resetForm(props.cardId);
         this.state = {
             form,
@@ -53,17 +49,33 @@ class RecordModal extends React.Component<RecordModalProps, RecordModalState> {
                 coworkerId: true,
                 point: true
             },
-            deptOptions: props.deptOptions.map(x => x.dept),
+            deptOptions,
             coworkerOptions
         };
     }
 
     componentDidUpdate(prevProps: RecordModalProps) {
-        const { recordId } = this.props;
+        const { recordId, deptOptions } = this.props;
         if (recordId && prevProps.recordId !== recordId) {
             this.fetchStampCardRecord(recordId);
         }
+        if (deptOptions && prevProps.deptOptions?.length != deptOptions?.length) {
+            const { deptOptions, coworkerOptions } = this.handleOptions(this.props.deptOptions);
+            this.setState({ deptOptions, coworkerOptions });
+        }
     }
+
+    private handleOptions = (deptOptions: DeptCoworkerInfo[]): { deptOptions: string[], coworkerOptions: { [dept: string]: Coworker[]; }; } => {
+        const coworkerOptions = {};
+        for (const opt of deptOptions) {
+            const { dept, coworkers } = opt;
+            coworkerOptions[dept] = coworkers;
+        }
+        return {
+            deptOptions: deptOptions.map(x => x.dept),
+            coworkerOptions
+        };
+    };
 
     private fetchStampCardRecord = async (recordId: string) => {
         const { deptOptions } = this.props;
