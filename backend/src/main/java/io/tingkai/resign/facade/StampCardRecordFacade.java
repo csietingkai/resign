@@ -43,8 +43,8 @@ public class StampCardRecordFacade {
 		return entities;
 	}
 
-	public List<StampCardRecord> queryByDateAndcoWorkerId(@Nullable LocalDate startDate, @Nullable LocalDate endDate, @Nullable UUID coworkerId) {
-		List<StampCardRecord> entities = stampCardRecordDao.findAll();
+	public List<StampCardRecord> queryByDateAndCoworkerId(UUID cardId, @Nullable LocalDate startDate, @Nullable LocalDate endDate, @Nullable UUID coworkerId) {
+		List<StampCardRecord> entities = stampCardRecordDao.findByCardId(cardId);
 		// @formatter:off
 		entities = entities.stream()
 				.filter(x -> !BaseAppUtil.isPresent(startDate) || x.getDate().toLocalDate().compareTo(startDate) >= 0)

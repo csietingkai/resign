@@ -116,7 +116,8 @@ public class ResignService {
 	}
 
 	public List<StampCardRecord> fetchStampCardRecords(@Nullable LocalDate startDate, @Nullable LocalDate endDate, @Nullable String dept, @Nullable UUID coworkerId) {
-		List<StampCardRecord> stampCardRecords = stampCardRecordFacade.queryByDateAndcoWorkerId(startDate, endDate, coworkerId);
+		StampCard stampCard = stampCardFacade.queryByUserName(ContextUtil.getUserName());
+		List<StampCardRecord> stampCardRecords = stampCardRecordFacade.queryByDateAndCoworkerId(stampCard.getId(), startDate, endDate, coworkerId);
 		if (BaseStringUtil.isBlank(dept)) {
 			return stampCardRecords;
 		}
