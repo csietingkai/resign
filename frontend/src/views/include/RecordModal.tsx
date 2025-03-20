@@ -55,13 +55,16 @@ class RecordModal extends React.Component<RecordModalProps, RecordModalState> {
     }
 
     componentDidUpdate(prevProps: RecordModalProps) {
-        const { recordId, deptOptions } = this.props;
+        const { recordId, cardId, deptOptions } = this.props;
         if (recordId && prevProps.recordId !== recordId) {
             this.fetchStampCardRecord(recordId);
         }
         if (deptOptions && prevProps.deptOptions?.length != deptOptions?.length) {
             const { deptOptions, coworkerOptions } = this.handleOptions(this.props.deptOptions);
             this.setState({ deptOptions, coworkerOptions });
+        }
+        if (cardId && prevProps.cardId !== cardId) {
+            this.setState({ form: { ...this.state.form, cardId } });
         }
     }
 
