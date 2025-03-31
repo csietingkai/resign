@@ -118,7 +118,11 @@ public class ResignService {
 	}
 
 	@Transactional
-	public void removeStampCardRecord(UUID recordId) {
+	public void removeStampCardRecord(UUID recordId) throws FieldMissingException, NotExistException {
+		StampCardRecord stampCardRecord = stampCardRecordFacade.queryById(recordId);
+		StampCard stampCard = stampCardFacade.queryById(stampCardRecord.getCardId());
+		stampCard.setPoint(stampCard.getPoint() - stampCardRecord.getPoint());
+		stampCard = stampCardFacade.update(stampCard);
 		stampCardRecordFacade.remove(recordId);
 	}
 
