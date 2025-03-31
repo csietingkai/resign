@@ -39,6 +39,7 @@ export const DEFAULT_REDUX_RESIGN_STATE: ReduxResignState = {
 };
 const getResignState = (state: ReduxState): ReduxResignState => state.resign;
 export const getUserInfo = (state: ReduxState): UserInfo => getResignState(state)?.userInfo as UserInfo;
+export const getMaxStampCnt = (state: ReduxState): number => getUserInfo(state)?.maxStampCnt;
 export const getStampCardInfo = (state: ReduxState): StampCardInfo => getResignState(state)?.stampCardInfo as StampCardInfo;
 export const getStampCardId = (state: ReduxState): string => getStampCardInfo(state)?.id;
 export const getDeptCoworkerOptions = (state: ReduxState): DeptCoworkerInfo[] => getResignState(state).deptCoworkerOptions;

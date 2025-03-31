@@ -1,12 +1,8 @@
-import React, { Dispatch } from 'react';
+import React from 'react';
 import moment from 'moment';
-import { connect } from 'react-redux';
-import { CButton, CCard, CCardBody, CCol, CForm, CFormInput, CFormLabel, CFormSelect, CFormTextarea, CModal, CModalBody, CModalFooter, CModalHeader, CModalTitle, CRow } from '@coreui/react';
-import { SetNotifyDispatcher, SetStampCardInfoDispatcher, SetUserInfoDispatcher } from '../../reducer/PropsMapper';
-import { getDeptCoworkerOptions, getStampCardInfo, ReduxState } from '../../reducer/Selector';
-import ResignApi, { Coworker, DeptCoworkerInfo, StampCardInfo, StampCardRecord, UserInfo } from '../../api/resign';
+import { CButton, CForm, CFormInput, CFormLabel, CFormSelect, CFormTextarea, CModal, CModalBody, CModalFooter, CModalHeader, CModalTitle, CRow } from '@coreui/react';
+import ResignApi, { Coworker, DeptCoworkerInfo, StampCardRecord } from '../../api/resign';
 import * as AppUtil from '../../util/AppUtil';
-import { Action } from '../../util/Interface';
 
 interface StampCardRecordForm extends StampCardRecord {
     dept: string;

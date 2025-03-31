@@ -3,7 +3,7 @@ import { connect } from 'react-redux';
 import moment from 'moment';
 import { CButton, CButtonGroup, CCard, CCardBody, CCardFooter, CCardHeader, CCol, CForm, CFormLabel, CFormSelect, CRow, CTable, CTableBody, CTableDataCell, CTableHead, CTableHeaderCell, CTableRow } from '@coreui/react';
 import CIcon from '@coreui/icons-react';
-import { cilChevronDoubleRight, cilChevronRight, cilPencil, cilTrash } from '@coreui/icons';
+import { cilChevronDoubleRight, cilChevronRight, cilTrash } from '@coreui/icons';
 import ResignApi, { Coworker, DeptCoworkerInfo, StampCardInfo, StampCardRecord } from '../api/resign';
 import AppConfirmModal from '../components/AppConfirmModal';
 import AppPagination from '../components/AppPagination';

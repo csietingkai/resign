@@ -4,6 +4,7 @@ CREATE TABLE IF NOT EXISTS user_info (
 	id uuid NOT NULL DEFAULT uuid_generate_v4(),
 	user_name VARCHAR NOT NULL,
 	signed BOOLEAN NOT NULL DEFAULT true,
+	max_stamp_cnt integer NOT NULL DEFAULT 100,
 	PRIMARY KEY (id)
 );
 

@@ -1,11 +1,12 @@
 import axios from 'axios';
-import { COWORKER_PATH, GET_LEADERBOARD_PATH, GET_USER_INFO_PATH, POST_INIT_PATH, STAMP_CARD_PATH, STAMP_CARD_RECORD_PATH, STAMP_CARD_RECORDS_PATH } from './Constant';
+import { COWORKER_PATH, GET_LEADERBOARD_PATH, USER_INFO_PATH, POST_INIT_PATH, STAMP_CARD_PATH, STAMP_CARD_RECORD_PATH, STAMP_CARD_RECORDS_PATH } from './Constant';
 import * as AppUtil from '../util/AppUtil';
 import { ApiResponse, SimpleResponse } from '../util/Interface';
 
 export interface UserInfo {
     name: string;
     signed: boolean;
+    maxStampCnt: number;
 }
 
 export interface StampCard {
@@ -63,13 +64,19 @@ export interface DeptCoworkerResponse extends ApiResponse<DeptCoworkerInfo[]> { 
 export interface LeadingStampCardsResponse extends ApiResponse<StampCard[]> { }
 
 const getUserInfo = async (): Promise<UserInfoResponse> => {
-    const response = await axios.get(GET_USER_INFO_PATH);
+    const response = await axios.get(USER_INFO_PATH);
     const data: UserInfoResponse = response.data;
     return data;
 };
 
 const postInit = async (): Promise<SimpleResponse> => {
     const response = await axios.post(POST_INIT_PATH);
+    const data: SimpleResponse = response.data;
+    return data;
+};
+
+const updateUserInfo = async (maxStampCnt: number): Promise<SimpleResponse> => {
+    const response = await axios.post(USER_INFO_PATH, { maxStampCnt });
     const data: SimpleResponse = response.data;
     return data;
 };
@@ -123,4 +130,4 @@ const getLeading = async (size: number = 5): Promise<LeadingStampCardsResponse> 
     return data;
 };
 
-export default { getUserInfo, postInit, getStampCardInfo, fetchStampCardRecord, insertStampCardRecord, removeStampCardRecord, fetchStampCardRecords, getDeptCoworkerOptions, getLeading };
+export default { getUserInfo, postInit, updateUserInfo, getStampCardInfo, fetchStampCardRecord, insertStampCardRecord, removeStampCardRecord, fetchStampCardRecords, getDeptCoworkerOptions, getLeading };

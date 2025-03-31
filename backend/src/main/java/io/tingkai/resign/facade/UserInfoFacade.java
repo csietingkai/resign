@@ -46,7 +46,7 @@ public class UserInfoFacade {
 	}
 
 	public UserInfo update(UserInfo entity) throws FieldMissingException, NotExistException {
-		if (!BaseAppUtil.isAllPresent(entity, entity.getId(), entity.getUserName())) {
+		if (!BaseAppUtil.isAllPresent(entity, entity.getId(), entity.getUserName(), entity.getMaxStampCnt())) {
 			throw new FieldMissingException();
 		}
 		Optional<UserInfo> optional = userInfoDao.findById(entity.getId());
@@ -55,6 +55,7 @@ public class UserInfoFacade {
 		}
 		UserInfo updateEntity = optional.get();
 		updateEntity.setUserName(entity.getUserName());
+		updateEntity.setMaxStampCnt(entity.getMaxStampCnt());
 		return userInfoDao.save(updateEntity);
 	}
 }

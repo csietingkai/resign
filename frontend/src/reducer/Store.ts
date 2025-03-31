@@ -41,7 +41,11 @@ export const init = (dispatch: Dispatch<Action<any>>, getState: () => ReduxState
             const { success, data } = response;
             if (success) {
                 if (!data?.signed) {
-                    ResignApi.postInit();
+                    ResignApi.postInit().then(({ success }) => {
+                        if (success) {
+                            ResignApi.getUserInfo().then(({ data }) => dispatch(SetUserInfo(data)));
+                        }
+                    });
                 }
                 dispatch(SetUserInfo(data));
             }

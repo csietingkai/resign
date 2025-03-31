@@ -19,4 +19,5 @@ public class UserInfo {
 	protected UUID id;
 	protected String userName;
 	protected Boolean signed;
+	protected Integer maxStampCnt = 100;
 }

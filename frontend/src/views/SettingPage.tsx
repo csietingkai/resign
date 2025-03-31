@@ -1,14 +1,18 @@
 import React, { Dispatch } from 'react';
 import { connect } from 'react-redux';
 import { CButton, CCard, CCardBody, CCardFooter, CCardHeader, CCol, CForm, CFormInput, CFormLabel, CRow } from '@coreui/react';
-import { ReduxState, getAuthTokenName } from '../reducer/Selector';
-import { SetNotifyDispatcher } from '../reducer/PropsMapper';
-import AuthApi, {  } from '../api/auth';
+import { ReduxState, getAuthTokenName, getMaxStampCnt, getUserInfo } from '../reducer/Selector';
+import { SetNotifyDispatcher, SetUserInfoDispatcher } from '../reducer/PropsMapper';
+import AuthApi from '../api/auth';
+import ResignApi, { UserInfo } from '../api/resign';
 import * as AppUtil from '../util/AppUtil';
 import { Action } from '../util/Interface';
 
 export interface SettingPageProps {
     username: string;
+    userInfo: UserInfo;
+    maxStampCnt: number;
+    setUserInfo: (userInfo: UserInfo) => void;
     notify: (message: string) => void;
 }
 
@@ -17,6 +21,7 @@ export interface SettingPageState {
         username: string;
         userPwd: string;
         conmfirmPwd: string;
+        maxStampCnt: number;
     };
 }
 
@@ -29,7 +34,8 @@ class SettingPage extends React.Component<SettingPageProps, SettingPageState> {
             userForm: {
                 username: username,
                 userPwd: '',
-                conmfirmPwd: ''
+                conmfirmPwd: '',
+                maxStampCnt: props.maxStampCnt
             }
         };
     }
@@ -45,6 +51,22 @@ class SettingPage extends React.Component<SettingPageProps, SettingPageState> {
         const { message } = response;
         notify(message);
         this.setState({ userForm: { ...userForm, userPwd: '', conmfirmPwd: '' } });
+    };
+
+    private updateMaxStampCnt = async () => {
+        const { userInfo, setUserInfo, notify } = this.props;
+        const { userForm } = this.state;
+        if (!userForm.maxStampCnt) {
+            return;
+        }
+        const response = await ResignApi.updateUserInfo(userForm.maxStampCnt);
+        const { success, message } = response;
+        if (success) {
+            notify('設定更新成功');
+            setUserInfo({ ...userInfo, maxStampCnt: userForm.maxStampCnt });
+        } else {
+            notify(message);
+        }
     };
 
     render(): React.ReactNode {
@@ -114,6 +136,40 @@ class SettingPage extends React.Component<SettingPageProps, SettingPageState> {
                         </CCardFooter>
                     </CCard>
                 </CCol>
+                <CCol sm={6} className='mx-auto'>
+                    <CCard className='mb-4'>
+                        <CCardHeader>
+                            <strong>更改集點卡設定</strong>
+                        </CCardHeader>
+                        <CCardBody>
+                            <CForm onKeyDown={AppUtil.bindEnterKey(this.updateMaxStampCnt)}>
+                                <CRow className='mb-3'>
+                                    <CCol xs={5} md={4}>
+                                        <CFormLabel htmlFor='type' className='col-form-label'>
+                                            集點數上限
+                                        </CFormLabel>
+                                    </CCol>
+                                    <CCol xs={7} md={8}>
+                                        <CFormInput
+                                            type='number'
+                                            value={userForm.maxStampCnt}
+                                            className={`${!!userForm.maxStampCnt ? '' : 'is-invalid'}`}
+                                            onChange={(event) => this.setState({ userForm: { ...userForm, maxStampCnt: AppUtil.toNumber(event.target.value) } })}
+                                        />
+                                    </CCol>
+                                </CRow>
+                            </CForm>
+                        </CCardBody>
+                        <CCardFooter className='text-end'>
+                            <CButton className='me-2' color='success' variant='outline' onClick={this.updateMaxStampCnt}>
+                                儲存
+                            </CButton>
+                            <CButton color='secondary' variant='outline' onClick={() => this.setState({ userForm: { ...userForm, maxStampCnt: this.props.maxStampCnt } })}>
+                                清除
+                            </CButton>
+                        </CCardFooter>
+                    </CCard>
+                </CCol>
             </CRow>
         );
     }
@@ -121,12 +177,15 @@ class SettingPage extends React.Component<SettingPageProps, SettingPageState> {
 
 const mapStateToProps = (state: ReduxState) => {
     return {
-        username: getAuthTokenName(state)
+        username: getAuthTokenName(state),
+        userInfo: getUserInfo(state),
+        maxStampCnt: getMaxStampCnt(state)
     };
 };
 
-const mapDispatchToProps = (dispatch: Dispatch<Action<string | undefined>>) => {
+const mapDispatchToProps = (dispatch: Dispatch<Action<UserInfo | string | undefined>>) => {
     return {
+        setUserInfo: SetUserInfoDispatcher(dispatch),
         notify: SetNotifyDispatcher(dispatch)
     };
 };

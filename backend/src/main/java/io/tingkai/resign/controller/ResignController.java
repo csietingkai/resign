@@ -20,6 +20,7 @@ import io.tingkai.resign.entity.StampCard;
 import io.tingkai.resign.entity.StampCardRecord;
 import io.tingkai.resign.entity.UserInfo;
 import io.tingkai.resign.model.request.InsertStampCardRecordRequest;
+import io.tingkai.resign.model.request.UpdateUserSettingReq;
 import io.tingkai.resign.model.response.ResignResponse;
 import io.tingkai.resign.model.vo.DeptCoworkerInfo;
 import io.tingkai.resign.model.vo.StampCardInfo;
@@ -30,7 +31,7 @@ import io.tingkai.resign.service.ResignService;
 public class ResignController {
 
 	public static final String CONROLLER_PREFIX = "/resign";
-	public static final String GET_USER_INFO_PATH = "/userInfo";
+	public static final String USER_INFO_PATH = "/userInfo";
 	public static final String POST_INIT_PATH = "/postInit";
 	public static final String STAMP_CARD_PATH = "/stampCard";
 	public static final String STAMP_CARD_RECORD_PATH = "/stampCardRecord";
@@ -41,7 +42,7 @@ public class ResignController {
 	@Autowired
 	private ResignService resignService;
 
-	@RequestMapping(value = ResignController.GET_USER_INFO_PATH, method = RequestMethod.GET)
+	@RequestMapping(value = ResignController.USER_INFO_PATH, method = RequestMethod.GET)
 	public ResignResponse<UserInfo> getUserInfo() {
 		UserInfo userInfo = resignService.getUserInfo();
 		return new ResignResponse<UserInfo>(true, userInfo, MessageConstant.SUCCESS);
@@ -50,6 +51,12 @@ public class ResignController {
 	@RequestMapping(value = ResignController.POST_INIT_PATH, method = RequestMethod.POST)
 	public SimpleResponse postInit() throws AlreadyExistException, FieldMissingException, NotExistException {
 		resignService.postInit();
+		return new SimpleResponse(true);
+	}
+	
+	@RequestMapping(value = ResignController.USER_INFO_PATH, method = RequestMethod.POST)
+	public SimpleResponse updateUserInfo(@RequestBody UpdateUserSettingReq req) throws FieldMissingException, NotExistException {
+		resignService.updateUserInfo(req);
 		return new SimpleResponse(true);
 	}
 

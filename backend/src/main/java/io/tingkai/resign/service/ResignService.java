@@ -29,6 +29,7 @@ import io.tingkai.resign.facade.CoworkerFacade;
 import io.tingkai.resign.facade.StampCardFacade;
 import io.tingkai.resign.facade.StampCardRecordFacade;
 import io.tingkai.resign.facade.UserInfoFacade;
+import io.tingkai.resign.model.request.UpdateUserSettingReq;
 import io.tingkai.resign.model.vo.DeptCoworkerInfo;
 import io.tingkai.resign.model.vo.StampCardInfo;
 import io.tingkai.resign.model.vo.StampCardInfo.ExtraInfo;
@@ -77,6 +78,12 @@ public class ResignService {
 			stampCard.setPoint(0);
 			stampCard = stampCardFacade.insert(stampCard);
 		}
+	}
+
+	public void updateUserInfo(UpdateUserSettingReq req) throws FieldMissingException, NotExistException {
+		UserInfo userInfo = userInfoFacade.queryByUserName(ContextUtil.getUserName());
+		userInfo.setMaxStampCnt(req.getMaxStampCnt());
+		userInfoFacade.update(userInfo);
 	}
 
 	public StampCardInfo getStampCardInfo() {
@@ -153,6 +160,4 @@ public class ResignService {
 	public List<StampCard> getLeadingStampCards(int size) {
 		return stampCardFacade.queryTop(size);
 	}
-
-
 }
