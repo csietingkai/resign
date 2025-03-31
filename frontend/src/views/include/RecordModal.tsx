@@ -83,6 +83,7 @@ class RecordModal extends React.Component<RecordModalProps, RecordModalState> {
         form.coworkerId = data.coworkerId;
         form.date = data.date;
         form.dept = deptOptions.find(d => d.coworkers.findIndex(c => c.id === data.coworkerId) >= 0)?.dept || '';
+        form.point = data.point;
         form.coworkerId = data.coworkerId;
         form.description = data.description;
         this.setState({ form });
