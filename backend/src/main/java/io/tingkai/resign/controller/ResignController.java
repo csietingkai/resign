@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.RestController;
 import io.tingkai.base.model.exception.AlreadyExistException;
 import io.tingkai.base.model.exception.FieldMissingException;
 import io.tingkai.base.model.exception.NotExistException;
+import io.tingkai.base.model.response.BaseResponse;
 import io.tingkai.base.model.response.SimpleResponse;
 import io.tingkai.resign.constant.MessageConstant;
 import io.tingkai.resign.entity.StampCard;
@@ -21,7 +22,6 @@ import io.tingkai.resign.entity.StampCardRecord;
 import io.tingkai.resign.entity.UserInfo;
 import io.tingkai.resign.model.request.InsertStampCardRecordRequest;
 import io.tingkai.resign.model.request.UpdateUserSettingReq;
-import io.tingkai.resign.model.response.ResignResponse;
 import io.tingkai.resign.model.vo.DeptCoworkerInfo;
 import io.tingkai.resign.model.vo.StampCardInfo;
 import io.tingkai.resign.service.ResignService;
@@ -43,9 +43,9 @@ public class ResignController {
 	private ResignService resignService;
 
 	@RequestMapping(value = ResignController.USER_INFO_PATH, method = RequestMethod.GET)
-	public ResignResponse<UserInfo> getUserInfo() {
+	public BaseResponse<UserInfo> getUserInfo() {
 		UserInfo userInfo = resignService.getUserInfo();
-		return new ResignResponse<UserInfo>(true, userInfo, MessageConstant.SUCCESS);
+		return new BaseResponse<UserInfo>(true, userInfo, MessageConstant.SUCCESS);
 	}
 
 	@RequestMapping(value = ResignController.POST_INIT_PATH, method = RequestMethod.POST)
@@ -53,7 +53,7 @@ public class ResignController {
 		resignService.postInit();
 		return new SimpleResponse(true);
 	}
-	
+
 	@RequestMapping(value = ResignController.USER_INFO_PATH, method = RequestMethod.POST)
 	public SimpleResponse updateUserInfo(@RequestBody UpdateUserSettingReq req) throws FieldMissingException, NotExistException {
 		resignService.updateUserInfo(req);
@@ -61,15 +61,15 @@ public class ResignController {
 	}
 
 	@RequestMapping(value = ResignController.STAMP_CARD_PATH, method = RequestMethod.GET)
-	public ResignResponse<StampCardInfo> getStampCardInfo() throws FieldMissingException, NotExistException {
+	public BaseResponse<StampCardInfo> getStampCardInfo() throws FieldMissingException, NotExistException {
 		StampCardInfo info = resignService.getStampCardInfo();
-		return new ResignResponse<StampCardInfo>(true, info, MessageConstant.SUCCESS);
+		return new BaseResponse<StampCardInfo>(true, info, MessageConstant.SUCCESS);
 	}
 
 	@RequestMapping(value = ResignController.STAMP_CARD_RECORD_PATH, method = RequestMethod.GET)
-	public ResignResponse<StampCardRecord> fetchStampCardRecord(@RequestParam UUID id) throws FieldMissingException, NotExistException {
+	public BaseResponse<StampCardRecord> fetchStampCardRecord(@RequestParam UUID id) throws FieldMissingException, NotExistException {
 		StampCardRecord stampCardRecord = resignService.fetchStampCardRecord(id);
-		return new ResignResponse<StampCardRecord>(true, stampCardRecord, MessageConstant.SUCCESS);
+		return new BaseResponse<StampCardRecord>(true, stampCardRecord, MessageConstant.SUCCESS);
 	}
 
 	@RequestMapping(value = ResignController.STAMP_CARD_RECORD_PATH, method = RequestMethod.POST)
@@ -77,7 +77,7 @@ public class ResignController {
 		resignService.insertStampCardRecord(stampCardRecord.toEntity());
 		return new SimpleResponse(true);
 	}
-	
+
 	@RequestMapping(value = ResignController.STAMP_CARD_RECORD_PATH, method = RequestMethod.DELETE)
 	public SimpleResponse removeStampCardRecord(@RequestParam UUID recordId) throws FieldMissingException, NotExistException {
 		resignService.removeStampCardRecord(recordId);
@@ -85,20 +85,20 @@ public class ResignController {
 	}
 
 	@RequestMapping(value = ResignController.STAMP_CARD_RECORDS_PATH, method = RequestMethod.GET)
-	public ResignResponse<List<StampCardRecord>> fetchStampCardRecords(@RequestParam(required = false) LocalDate startDate, @RequestParam(required = false) LocalDate endDate, @RequestParam(required = false) String dept, @RequestParam(required = false) UUID coworkerId) throws FieldMissingException, NotExistException {
+	public BaseResponse<List<StampCardRecord>> fetchStampCardRecords(@RequestParam(required = false) LocalDate startDate, @RequestParam(required = false) LocalDate endDate, @RequestParam(required = false) String dept, @RequestParam(required = false) UUID coworkerId) throws FieldMissingException, NotExistException {
 		List<StampCardRecord> stampCardRecords = resignService.fetchStampCardRecords(startDate, endDate, dept, coworkerId);
-		return new ResignResponse<List<StampCardRecord>>(true, stampCardRecords, MessageConstant.SUCCESS);
+		return new BaseResponse<List<StampCardRecord>>(true, stampCardRecords, MessageConstant.SUCCESS);
 	}
 
 	@RequestMapping(value = ResignController.COWORKER_PATH, method = RequestMethod.GET)
-	public ResignResponse<List<DeptCoworkerInfo>> getCoworkerOptions() throws FieldMissingException, NotExistException {
+	public BaseResponse<List<DeptCoworkerInfo>> getCoworkerOptions() throws FieldMissingException, NotExistException {
 		List<DeptCoworkerInfo> infos = resignService.getCoworkerOptions();
-		return new ResignResponse<List<DeptCoworkerInfo>>(true, infos, MessageConstant.SUCCESS);
+		return new BaseResponse<List<DeptCoworkerInfo>>(true, infos, MessageConstant.SUCCESS);
 	}
 
 	@RequestMapping(value = ResignController.GET_LEADERBOARD_PATH, method = RequestMethod.GET)
-	public ResignResponse<List<StampCard>> getStampCards(@RequestParam int size) {
+	public BaseResponse<List<StampCard>> getStampCards(@RequestParam int size) {
 		List<StampCard> cards = resignService.getLeadingStampCards(size);
-		return new ResignResponse<List<StampCard>>(true, cards, MessageConstant.SUCCESS);
+		return new BaseResponse<List<StampCard>>(true, cards, MessageConstant.SUCCESS);
 	}
 }
