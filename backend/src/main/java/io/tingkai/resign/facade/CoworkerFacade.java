@@ -2,6 +2,8 @@ package io.tingkai.resign.facade;
 
 import java.text.MessageFormat;
 import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -27,11 +29,12 @@ public class CoworkerFacade {
 		return entities;
 	}
 
-	public List<String> queryAllDept() {
-		List<String> entities = coworkerDao.findAllDept();
-		if (entities.size() == 0) {
+	public Coworker queryById(UUID id) {
+		Optional<Coworker> optional = coworkerDao.findById(id);
+		if (optional.isEmpty()) {
 			log.trace(MessageFormat.format(MessageConstant.QUERY_NO_DATA, DatabaseConstant.TABLE_COWORKER));
+			return null;
 		}
-		return entities;
+		return optional.get();
 	}
 }

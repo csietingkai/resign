@@ -3,19 +3,20 @@ import { connect } from 'react-redux';
 import moment from 'moment';
 import { CButton, CButtonGroup, CCard, CCardBody, CCardFooter, CCardHeader, CCol, CForm, CFormLabel, CFormSelect, CRow, CTable, CTableBody, CTableDataCell, CTableHead, CTableHeaderCell, CTableRow } from '@coreui/react';
 import CIcon from '@coreui/icons-react';
-import { cilChevronDoubleRight, cilChevronRight, cilTrash } from '@coreui/icons';
-import ResignApi, { Coworker, DeptCoworkerInfo, StampCardInfo, StampCardRecord } from '../api/resign';
+import { cilChevronDoubleRight, cilChevronRight, cilPen, cilTrash } from '@coreui/icons';
+import { SetNotifyDispatcher, SetStampCardRecordsDispatcher } from '../reducer/PropsMapper';
+import { getOrgCoworkerOptions, getStampCard, getStampCardId, ReduxState } from '../reducer/Selector';
 import AppConfirmModal from '../components/AppConfirmModal';
 import AppPagination from '../components/AppPagination';
-import { SetNotifyDispatcher, SetStampCardInfoDispatcher } from '../reducer/PropsMapper';
-import { getDeptCoworkerOptions, getStampCardId, ReduxState } from '../reducer/Selector';
+import RecordModal, { RecordModalMode } from './include/RecordModal';
+import ResignApi, { OrganizationCoworkerInfo, StampCardRecord } from '../api/resign';
 import * as AppUtil from '../util/AppUtil';
 import { Action } from '../util/Interface';
 
 export interface StampRecordPageProps {
     cardId: string;
-    deptOptions: DeptCoworkerInfo[];
-    setStampCardInfo: (stampCardInfo: StampCardInfo) => void;
+    orgCoworkerOptions: OrganizationCoworkerInfo[];
+    setStampCardRecords: (stampCardRecords: StampCardRecord[]) => void;
     notify: (message: string) => void;
 }
 
@@ -23,19 +24,17 @@ export interface StampRecordPageState {
     searchCondition: {
         startDate: Date;
         endDate: Date;
-        dept: string;
+        orgId: string;
         coworkerId: string;
     };
     isSearchConditionValid: {
         startDate: boolean;
         endDate: boolean;
     };
-    deptOptions: string[];
-    coworkerOptions: { [dept: string]: Coworker[]; };
-    coworkerInfo: { [coworkerId: string]: { dept: string, name: string, ename: string; }; };
     searchResult: StampCardRecord[];
     searchResultPage: number;
     showDeleteRecordModal: boolean;
+    recordModalMode: RecordModalMode;
     holdingRecordId: string;
 }
 
@@ -43,67 +42,41 @@ class StampRecordPage extends React.Component<StampRecordPageProps, StampRecordP
 
     constructor(props: StampRecordPageProps) {
         super(props);
-        const endDate = new Date();
-        const startDate = new Date(endDate.getFullYear(), endDate.getMonth(), endDate.getDate() - 7);
-        const coworkerOptions = {};
-        const coworkerInfo = {};
-        for (const opt of props.deptOptions) {
-            const { dept, coworkers } = opt;
-            coworkerOptions[dept] = coworkers;
-            for (const coworker of coworkers) {
-                coworkerInfo[coworker.id] = {
-                    dept,
-                    name: coworker.name,
-                    ename: coworker.ename
-                };
-            }
-        }
+
         this.state = {
             searchCondition: {
-                startDate,
-                endDate,
-                dept: '',
+                startDate: moment().add(-7, 'day').toDate(),
+                endDate: moment().toDate(),
+                orgId: '',
                 coworkerId: ''
             },
             isSearchConditionValid: {
                 startDate: true,
                 endDate: true
             },
-            deptOptions: props.deptOptions.map(x => x.dept),
-            coworkerOptions,
-            coworkerInfo,
             searchResult: [],
             searchResultPage: 1,
             showDeleteRecordModal: false,
+            recordModalMode: '',
             holdingRecordId: ''
         };
     }
 
     private search = async () => {
         const { notify } = this.props;
-        const { searchCondition: { startDate, endDate, dept, coworkerId }, isSearchConditionValid } = this.state;
+        const { searchCondition: { startDate, endDate, coworkerId }, isSearchConditionValid } = this.state;
         const isValid: boolean = isSearchConditionValid.startDate && isSearchConditionValid.endDate;
         if (!isValid) {
             notify('日期起日不可大於訖日');
             return;
         }
-        const { success, data, message } = await ResignApi.fetchStampCardRecords(startDate, endDate, dept, coworkerId);
+        const { success, data, message } = await ResignApi.getStampCardRecords(startDate, endDate, coworkerId);
         if (success) {
             this.setState({ searchResult: data, searchResultPage: 1 });
         } else {
             notify(message);
         }
     };
-
-    private refreshStampCardInfo = async (cardId: string = this.props.cardId) => {
-        const { setStampCardInfo, notify } = this.props;
-        const { success, data, message } = await ResignApi.getStampCardInfo();
-        if (success) {
-            setStampCardInfo(data);
-        } else {
-            notify(message);
-        }
-    }
 
     private removeRecord = async (recordId: string = this.state.holdingRecordId) => {
         const { notify } = this.props;
@@ -114,7 +87,8 @@ class StampRecordPage extends React.Component<StampRecordPageProps, StampRecordP
     }
 
     private renderSearchCondition = (): React.ReactNode => {
-        const { searchCondition, isSearchConditionValid, deptOptions, coworkerOptions } = this.state;
+        const { orgCoworkerOptions } = this.props;
+        const { searchCondition, isSearchConditionValid } = this.state;
         return (
             <CRow>
                 <CCol sm={7} className='mx-auto'>
@@ -183,12 +157,12 @@ class StampRecordPage extends React.Component<StampRecordPageProps, StampRecordP
                                         <div className='row'>
                                             <div className='col-sm-6 mb-2' style={{ width: '50%' }}>
                                                 <CFormSelect
-                                                    value={searchCondition.dept}
-                                                    id='record-dept'
-                                                    onChange={(event: any) => this.setState({ searchCondition: { ...searchCondition, dept: event.target.value as string, coworkerId: '' } })}
+                                                    value={searchCondition.orgId}
+                                                    id='record-orgId'
+                                                    onChange={(event: any) => this.setState({ searchCondition: { ...searchCondition, orgId: event.target.value as string, coworkerId: '' } })}
                                                 >
                                                     <option value=''>選擇部門</option>
-                                                    {deptOptions.map(o => <option key={`search-dept-option-${o}`} value={o}>{o}</option>)}
+                                                    {orgCoworkerOptions.map(o => <option key={`record-orgId-option-${o}`} value={o.orgId}>{o.orgName}</option>)}
                                                 </CFormSelect>
                                             </div>
                                             <div className='col-sm-6' style={{ width: '50%' }}>
@@ -198,7 +172,7 @@ class StampRecordPage extends React.Component<StampRecordPageProps, StampRecordP
                                                     onChange={(event: any) => this.setState({ searchCondition: { ...searchCondition, coworkerId: event.target.value as string } })}
                                                 >
                                                     <option value=''>選擇搞事仔</option>
-                                                    {coworkerOptions[searchCondition.dept]?.map(o => <option key={`search-coworker-option-${o.id}`} value={o.id}>{o.name} {o.ename}</option>)}
+                                                    {orgCoworkerOptions.find(x => x.orgId === searchCondition.orgId)?.coworkers.map(o => <option key={`record-coworker-option-${o.id}`} value={o.id}>{o.name} {o.ename}</option>)}
                                                 </CFormSelect>
                                             </div>
                                         </div>
@@ -218,7 +192,7 @@ class StampRecordPage extends React.Component<StampRecordPageProps, StampRecordP
     };
 
     private renderSearchResult = (): React.ReactNode => {
-        const { coworkerInfo, searchResult, searchResultPage } = this.state;
+        const { searchResult, searchResultPage } = this.state;
         return (
             <CCard>
                 <CCardHeader>
@@ -252,11 +226,19 @@ class StampRecordPage extends React.Component<StampRecordPageProps, StampRecordP
                                         searchResult.map(r =>
                                             <CTableRow key={r.id}>
                                                 <CTableDataCell className='text-nowrap text-center'>{AppUtil.toDateStr(r.date)}</CTableDataCell>
-                                                <CTableDataCell className='text-nowrap text-center'>{coworkerInfo[r.coworkerId].name} {coworkerInfo[r.coworkerId].ename}</CTableDataCell>
+                                                <CTableDataCell className='text-nowrap text-center'>{}</CTableDataCell>
                                                 <CTableDataCell className='text-nowrap text-center'>{r.point}</CTableDataCell>
                                                 <CTableDataCell>{r.description}</CTableDataCell>
                                                 <CTableDataCell>
                                                     <CButtonGroup role='group'>
+                                                        <CButton
+                                                            color='info'
+                                                            variant='outline'
+                                                            size='sm'
+                                                            onClick={() => this.setState({ recordModalMode: 'edit', holdingRecordId: r.id })}
+                                                        >
+                                                            <CIcon icon={cilPen}></CIcon>
+                                                        </CButton>
                                                         <CButton
                                                             color='danger'
                                                             variant='outline'
@@ -281,12 +263,24 @@ class StampRecordPage extends React.Component<StampRecordPageProps, StampRecordP
     };
 
     render(): React.ReactNode {
-        const { cardId } = this.props;
-        const { showDeleteRecordModal } = this.state;
+        const { cardId, orgCoworkerOptions, setStampCardRecords } = this.props;
+        const { recordModalMode, holdingRecordId, showDeleteRecordModal } = this.state;
         return (
             <React.Fragment>
                 {this.renderSearchCondition()}
                 {this.renderSearchResult()}
+                <RecordModal
+                    mode={recordModalMode}
+                    cardId={cardId || ''}
+                    orgCoworkerOptions={orgCoworkerOptions}
+                    recordId={holdingRecordId}
+                    onClose={() => this.setState({ recordModalMode: '', holdingRecordId: ''})}
+                    afterSubmit={() => {
+                        ResignApi.getStampCardRecords().then(({ data }) => setStampCardRecords(data));
+                        this.setState({ recordModalMode: '', holdingRecordId: '' });
+                        this.search();
+                    }}
+                />
                 <AppConfirmModal
                     showModal={showDeleteRecordModal}
                     headerText='刪除本次紀錄'
@@ -294,7 +288,7 @@ class StampRecordPage extends React.Component<StampRecordPageProps, StampRecordP
                         if (result) {
                             const { holdingRecordId } = this.state;
                             await this.removeRecord(holdingRecordId);
-                            this.refreshStampCardInfo(cardId);
+                            ResignApi.getStampCardRecords().then(({ data }) => setStampCardRecords(data));
                             this.search();
                         }
                         this.setState({ showDeleteRecordModal: false, holdingRecordId: '' });
@@ -303,16 +297,18 @@ class StampRecordPage extends React.Component<StampRecordPageProps, StampRecordP
             </React.Fragment>
         );
     }
-} const mapStateToProps = (state: ReduxState) => {
+}
+
+const mapStateToProps = (state: ReduxState) => {
     return {
         cardId: getStampCardId(state),
-        deptOptions: getDeptCoworkerOptions(state)
+        orgCoworkerOptions: getOrgCoworkerOptions(state)
     };
 };
 
-const mapDispatchToProps = (dispatch: Dispatch<Action<StampCardInfo | string | undefined>>) => {
+const mapDispatchToProps = (dispatch: Dispatch<Action<StampCardRecord[] | string | undefined>>) => {
     return {
-        setStampCardInfo: SetStampCardInfoDispatcher(dispatch),
+        setStampCardRecords: SetStampCardRecordsDispatcher(dispatch),
         notify: SetNotifyDispatcher(dispatch)
     };
 };

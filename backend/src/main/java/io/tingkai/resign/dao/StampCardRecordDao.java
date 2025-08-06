@@ -11,5 +11,5 @@ import io.tingkai.resign.entity.StampCardRecord;
 @Repository
 public interface StampCardRecordDao extends JpaRepository<StampCardRecord, UUID> {
 
-	public List<StampCardRecord> findByCardId(UUID cardId);
+	public List<StampCardRecord> findByCardIdOrderByDateAsc(UUID cardId);
 }

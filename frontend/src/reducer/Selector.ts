@@ -1,7 +1,7 @@
 import * as StateHolder from './StateHolder';
 import { AuthToken } from '../api/auth';
 import { Notification } from '../util/Interface';
-import { DeptCoworkerInfo, StampCard, StampCardInfo, UserInfo } from '../api/resign';
+import { OrganizationCoworkerInfo, StampCard, StampCardRecord, UserInfo } from '../api/resign';
 
 export interface ReduxState {
     auth: ReduxAuthState;
@@ -27,23 +27,23 @@ export const getAuthTokenExpiryDate = (state: ReduxState): Date => getAuthToken(
 // resignReducer
 export interface ReduxResignState {
     userInfo: UserInfo | undefined;
-    stampCardInfo: StampCardInfo | undefined;
-    deptCoworkerOptions: DeptCoworkerInfo[];
-    leadingStampCards: StampCard[];
+    stampCard: StampCard | undefined;
+    stampCardReords: StampCardRecord[];
+    orgCoworkerOptions: OrganizationCoworkerInfo[];
 }
 export const DEFAULT_REDUX_RESIGN_STATE: ReduxResignState = {
     userInfo: undefined,
-    stampCardInfo: undefined,
-    deptCoworkerOptions: [],
-    leadingStampCards: []
+    stampCard: undefined,
+    stampCardReords: [],
+    orgCoworkerOptions: []
 };
 const getResignState = (state: ReduxState): ReduxResignState => state.resign;
 export const getUserInfo = (state: ReduxState): UserInfo => getResignState(state)?.userInfo as UserInfo;
 export const getMaxStampCnt = (state: ReduxState): number => getUserInfo(state)?.maxStampCnt;
-export const getStampCardInfo = (state: ReduxState): StampCardInfo => getResignState(state)?.stampCardInfo as StampCardInfo;
-export const getStampCardId = (state: ReduxState): string => getStampCardInfo(state)?.id;
-export const getDeptCoworkerOptions = (state: ReduxState): DeptCoworkerInfo[] => getResignState(state).deptCoworkerOptions;
-export const getLeadingStampCards = (state: ReduxState): StampCard[] => getResignState(state).leadingStampCards;
+export const getStampCard = (state: ReduxState): StampCard => getResignState(state)?.stampCard as StampCard;
+export const getStampCardId = (state: ReduxState): string => getStampCard(state)?.id;
+export const getStampCardRecords = (state: ReduxState): StampCardRecord[] => getResignState(state).stampCardReords;
+export const getOrgCoworkerOptions = (state: ReduxState): OrganizationCoworkerInfo[] => getResignState(state).orgCoworkerOptions;
 
 // system variable
 export interface ReduxSystemSettingState {

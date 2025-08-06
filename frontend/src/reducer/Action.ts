@@ -1,7 +1,7 @@
 
-import { LOGIN, LOGOUT, SET_LOADING, NOTIFY, SET_SIDEBAR_FOLDABLE, SET_SIDEBAR_SHOW, SET_IS_MOBILE, SET_LEADING_STAMP_CARDS, SET_USER_INFO, SET_STAMP_CARD_INFO, SET_DEPT_COWORKER_OPTIONS } from './ActionType';
+import { LOGIN, LOGOUT, SET_LOADING, NOTIFY, SET_SIDEBAR_FOLDABLE, SET_SIDEBAR_SHOW, SET_IS_MOBILE, SET_USER_INFO, SET_ORG_COWORKER, SET_STAMP_CARD_RECORDS, SET_STAMP_CARD } from './ActionType';
 import { AuthToken } from '../api/auth';
-import { DeptCoworkerInfo, StampCard, StampCardInfo, UserInfo } from '../api/resign';
+import { OrganizationCoworkerInfo, StampCard, StampCardRecord, UserInfo } from '../api/resign';
 import { Action } from '../util/Interface';
 
 // auth
@@ -10,9 +10,9 @@ export const Logout = (): Action<undefined> => ({ type: LOGOUT, payload: undefin
 
 // resign
 export const SetUserInfo = (payload: UserInfo): Action<UserInfo> => ({ type: SET_USER_INFO, payload });
-export const SetStampCardInfo = (payload: StampCardInfo | undefined): Action<StampCardInfo | undefined> => ({ type: SET_STAMP_CARD_INFO, payload })
-export const SetDeptCoworkerOptions = (payload: DeptCoworkerInfo[]): Action<DeptCoworkerInfo[]> => ({ type: SET_DEPT_COWORKER_OPTIONS, payload });
-export const SetLeadingStampCards = (payload: StampCard[]): Action<StampCard[]> => ({ type: SET_LEADING_STAMP_CARDS, payload });
+export const SetOrgCoworkerInfos = (payload: OrganizationCoworkerInfo[]): Action<OrganizationCoworkerInfo[]> => ({ type: SET_ORG_COWORKER, payload });
+export const SetStampCard = (payload: StampCard): Action<StampCard> => ({ type: SET_STAMP_CARD, payload});
+export const SetStampCardRecords = (payload: StampCardRecord[]): Action<StampCardRecord[]> => ({ type: SET_STAMP_CARD_RECORDS, payload});
 
 // system setting
 export const SetLoading = (payload: boolean): Action<boolean> => ({ type: SET_LOADING, payload });

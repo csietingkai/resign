@@ -1,7 +1,7 @@
 import { Dispatch } from 'react';
-import { Login, Logout, SetLoading, Notify, SetSidebarFoldable, SetSidebarShow, SetStampCardInfo, SetUserInfo } from './Action';
+import { Login, Logout, SetLoading, Notify, SetSidebarFoldable, SetSidebarShow, SetUserInfo, SetStampCardRecords } from './Action';
 import { AuthToken } from '../api/auth';
-import { StampCardInfo, UserInfo } from '../api/resign';
+import { StampCardRecord, UserInfo } from '../api/resign';
 import { Action } from '../util/Interface';
 
 // auth
@@ -9,7 +9,7 @@ export const LoginDispatcher = (dispatch: Dispatch<Action<AuthToken>>) => (vo: A
 export const LogoutDispatcher = (dispatch: Dispatch<Action<undefined>>) => (): void => dispatch(Logout());
 
 export const SetUserInfoDispatcher = (dispatch: Dispatch<Action<UserInfo | undefined>>) => (userInfo: UserInfo): void => dispatch(SetUserInfo(userInfo));
-export const SetStampCardInfoDispatcher = (dispatch: Dispatch<Action<StampCardInfo | undefined>>) => (stampCardInfo: StampCardInfo): void => dispatch(SetStampCardInfo(stampCardInfo));
+export const SetStampCardRecordsDispatcher = (dispatch: Dispatch<Action<StampCardRecord[]>>) => (stampCardRecords: StampCardRecord[]): void => dispatch(SetStampCardRecords(stampCardRecords));
 
 // system setting
 export const SetLoadingDispatcher = (dispatch: Dispatch<Action<boolean>>) => (loading: boolean): void => dispatch(SetLoading(loading));

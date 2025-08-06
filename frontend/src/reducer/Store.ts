@@ -1,8 +1,8 @@
 import { Dispatch, legacy_createStore as createStore } from 'redux';
 import rootReducer from './Reducer';
 import AuthApi, { AuthResponse, AuthToken } from '../api/auth';
-import ResignApi, { DeptCoworkerResponse, LeadingStampCardsResponse, StampCardResponse, UserInfoResponse } from '../api/resign';
-import { Login, Logout, SetDeptCoworkerOptions, SetIsMobile, SetLeadingStampCards, SetStampCardInfo, SetUserInfo } from './Action';
+import ResignApi, { OrgCoworkerInfosResponse, StampCardRecordsResponse, StampCardResponse, UserInfoResponse } from '../api/resign';
+import { Login, Logout, SetIsMobile, SetOrgCoworkerInfos, SetStampCard, SetStampCardRecords, SetUserInfo } from './Action';
 import { ReduxState, getAuthTokenString } from './Selector';
 import { Action, ApiResponse } from '../util/Interface';
 import { getAuthToken } from './StateHolder';
@@ -50,41 +50,27 @@ export const init = (dispatch: Dispatch<Action<any>>, getState: () => ReduxState
                 dispatch(SetUserInfo(data));
             }
         });
-    }
 
-    if (tokenString) {
-        apis.push(ResignApi.getStampCardInfo());
+        apis.push(ResignApi.getOrgCoworkerOptions());
+        responseHandlers.push((response: OrgCoworkerInfosResponse) => {
+            const { success, data } = response;
+            if (success) {
+                dispatch(SetOrgCoworkerInfos(data));
+            } else {
+                dispatch(SetOrgCoworkerInfos([]));
+            }
+        });
+
+        apis.push(ResignApi.getStampCard());
         responseHandlers.push((response: StampCardResponse) => {
             const { success, data } = response;
             if (success) {
-                dispatch(SetStampCardInfo(data));
-            } else {
-                dispatch(SetStampCardInfo(undefined));
-            }
-        });
-    }
-
-
-    if (tokenString) {
-        apis.push(ResignApi.getDeptCoworkerOptions());
-        responseHandlers.push((response: DeptCoworkerResponse) => {
-            const { success, data } = response;
-            if (success) {
-                dispatch(SetDeptCoworkerOptions(data));
-            } else {
-                dispatch(SetDeptCoworkerOptions([]));
-            }
-        });
-    }
-
-    if (tokenString) {
-        apis.push(ResignApi.getLeading());
-        responseHandlers.push((response: LeadingStampCardsResponse) => {
-            const { success, data } = response;
-            if (success) {
-                dispatch(SetLeadingStampCards(data));
-            } else {
-                dispatch(SetLeadingStampCards([]));
+                dispatch(SetStampCard(data));
+                ResignApi.getStampCardRecords().then((response2: StampCardRecordsResponse) => {
+                    if (response2.success) {
+                        dispatch(SetStampCardRecords(response2.data));
+                    }
+                })
             }
         });
     }

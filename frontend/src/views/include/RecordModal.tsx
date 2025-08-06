@@ -1,20 +1,20 @@
 import React from 'react';
 import moment from 'moment';
 import { CButton, CForm, CFormInput, CFormLabel, CFormSelect, CFormTextarea, CModal, CModalBody, CModalFooter, CModalHeader, CModalTitle, CRow } from '@coreui/react';
-import ResignApi, { Coworker, DeptCoworkerInfo, StampCardRecord } from '../../api/resign';
+import ResignApi, { OrganizationCoworkerInfo, StampCardRecord } from '../../api/resign';
 import * as AppUtil from '../../util/AppUtil';
 
 interface StampCardRecordForm extends StampCardRecord {
-    dept: string;
+    orgId: string;
 }
 
-export type RecordModalMode = 'edit' | 'view' | '';
+export type RecordModalMode = 'edit' | 'insert' | 'view' | '';
 
 export interface RecordModalProps {
     mode: RecordModalMode;
     cardId: string;
     recordId?: string;
-    deptOptions: DeptCoworkerInfo[];
+    orgCoworkerOptions: OrganizationCoworkerInfo[];
     onClose: () => void;
     afterSubmit?: () => void;
 }
@@ -23,66 +23,45 @@ export interface RecordModalState {
     form: StampCardRecordForm;
     isFormValid: {
         date: boolean;
-        dept: boolean;
+        orgId: boolean;
         coworkerId: boolean;
         point: boolean;
     };
-    deptOptions: string[];
-    coworkerOptions: { [dept: string]: Coworker[]; };
 }
 
 class RecordModal extends React.Component<RecordModalProps, RecordModalState> {
 
     constructor(props: RecordModalProps) {
         super(props);
-        const { deptOptions, coworkerOptions } = this.handleOptions(props.deptOptions);
         const form = this.resetForm(props.cardId);
         this.state = {
             form,
             isFormValid: {
                 date: true,
-                dept: true,
+                orgId: true,
                 coworkerId: true,
                 point: true
-            },
-            deptOptions,
-            coworkerOptions
+            }
         };
     }
 
     componentDidUpdate(prevProps: RecordModalProps) {
-        const { recordId, cardId, deptOptions } = this.props;
+        const { recordId, cardId } = this.props;
         if (recordId && prevProps.recordId !== recordId) {
             this.fetchStampCardRecord(recordId);
-        }
-        if (deptOptions && prevProps.deptOptions?.length != deptOptions?.length) {
-            const { deptOptions, coworkerOptions } = this.handleOptions(this.props.deptOptions);
-            this.setState({ deptOptions, coworkerOptions });
         }
         if (cardId && prevProps.cardId !== cardId) {
             this.setState({ form: { ...this.state.form, cardId } });
         }
     }
 
-    private handleOptions = (deptOptions: DeptCoworkerInfo[]): { deptOptions: string[], coworkerOptions: { [dept: string]: Coworker[]; }; } => {
-        const coworkerOptions = {};
-        for (const opt of deptOptions) {
-            const { dept, coworkers } = opt;
-            coworkerOptions[dept] = coworkers;
-        }
-        return {
-            deptOptions: deptOptions.map(x => x.dept),
-            coworkerOptions
-        };
-    };
-
     private fetchStampCardRecord = async (recordId: string) => {
-        const { deptOptions } = this.props;
         const { form } = this.state;
-        const { data } = await ResignApi.fetchStampCardRecord(recordId);
+        const { data } = await ResignApi.getStampCardRecord(recordId);
+        form.id = data.id;
         form.coworkerId = data.coworkerId;
         form.date = data.date;
-        form.dept = deptOptions.find(d => d.coworkers.findIndex(c => c.id === data.coworkerId) >= 0)?.dept || '';
+        form.orgId = data.orgId;
         form.point = data.point;
         form.coworkerId = data.coworkerId;
         form.description = data.description;
@@ -96,13 +75,13 @@ class RecordModal extends React.Component<RecordModalProps, RecordModalState> {
             date: new Date(),
             coworkerId: '',
             point: 1,
-            dept: ''
+            orgId: ''
         };
         return form;
     };
 
     private onModalSubmit = async () => {
-        const { afterSubmit } = this.props;
+        const { mode, afterSubmit } = this.props;
         const { form, isFormValid } = this.state;
         if (!isFormValid.date) {
             this.setState({ isFormValid: { ...isFormValid, date: false } });
@@ -112,11 +91,15 @@ class RecordModal extends React.Component<RecordModalProps, RecordModalState> {
             this.setState({ isFormValid: { ...isFormValid, point: false } });
             return;
         }
-        if (!isFormValid.dept || !isFormValid.coworkerId) {
-            this.setState({ isFormValid: { ...isFormValid, dept: false, coworkerId: false } });
+        if (!isFormValid.orgId || !isFormValid.coworkerId) {
+            this.setState({ isFormValid: { ...isFormValid, orgId: false, coworkerId: false } });
             return;
         }
-        const { success } = await ResignApi.insertStampCardRecord({ ...form, date: AppUtil.toDateStr(form.date, 'YYYY-MM-DD') || '' });
+        let api: any = ResignApi.insertStampCardRecord;
+        if (mode === 'edit') {
+            api = ResignApi.updateStampCardRecord;
+        }
+        const { success } = await api({ ...form, date: AppUtil.toDateStr(form.date, 'YYYY-MM-DD') || '' });
         if (success) {
             this.closeModal();
             if (afterSubmit) {
@@ -132,14 +115,14 @@ class RecordModal extends React.Component<RecordModalProps, RecordModalState> {
             date: new Date(),
             coworkerId: '',
             point: 1,
-            dept: ''
+            orgId: ''
         };
         this.setState({ form }, this.props.onClose);
     };
 
     render(): React.ReactNode {
-        const { mode } = this.props;
-        const { form, isFormValid, deptOptions, coworkerOptions } = this.state;
+        const { mode, orgCoworkerOptions } = this.props;
+        const { form, isFormValid } = this.state;
         return (
             <CModal alignment='center' aria-modal visible={!!mode} onClose={this.closeModal}>
                 <CModalHeader>
@@ -185,25 +168,25 @@ class RecordModal extends React.Component<RecordModalProps, RecordModalState> {
                             </div>
                         </CRow>
                         <CRow className='mb-3'>
-                            <CFormLabel htmlFor='record-dept' className='col-sm-4 col-form-label required'>
+                            <CFormLabel htmlFor='record-orgId' className='col-sm-4 col-form-label required'>
                                 是誰在搞
                             </CFormLabel>
                             <div className='col-sm-8'>
                                 <div className='row'>
                                     <div className='col-sm-6 mb-2'>
                                         <CFormSelect
-                                            value={form.dept}
-                                            id='record-dept'
-                                            className={`form-control${!isFormValid.dept ? ' is-invalid' : ''}`}
+                                            value={form.orgId}
+                                            id='record-orgId'
+                                            className={`form-control${!isFormValid.orgId ? ' is-invalid' : ''}`}
                                             onChange={(event) => {
-                                                const dept: string = event.target.value as string;
-                                                isFormValid.dept = !!dept;
+                                                const orgId: string = event.target.value as string;
+                                                isFormValid.orgId = !!orgId;
                                                 isFormValid.coworkerId = false;
-                                                this.setState({ form: { ...form, dept, coworkerId: '' }, isFormValid });
+                                                this.setState({ form: { ...form, orgId, coworkerId: '' }, isFormValid });
                                             }}
                                         >
                                             <option value=''>選擇部門</option>
-                                            {deptOptions.map(o => <option key={`record-dept-option-${o}`} value={o}>{o}</option>)}
+                                            {orgCoworkerOptions.map(o => <option key={`record-orgId-option-${o}`} value={o.orgId}>{o.orgName}</option>)}
                                         </CFormSelect>
                                     </div>
                                     <div className='col-sm-6'>
@@ -218,7 +201,7 @@ class RecordModal extends React.Component<RecordModalProps, RecordModalState> {
                                             }}
                                         >
                                             <option value=''>選擇搞事仔</option>
-                                            {coworkerOptions[form.dept]?.map(o => <option key={`record-coworker-option-${o.id}`} value={o.id}>{o.name} {o.ename}</option>)}
+                                            {orgCoworkerOptions.find(x => x.orgId === form.orgId)?.coworkers.map(o => <option key={`record-coworker-option-${o.id}`} value={o.id}>{o.name} {o.ename}</option>)}
                                         </CFormSelect>
                                     </div>
                                 </div>
@@ -240,7 +223,7 @@ class RecordModal extends React.Component<RecordModalProps, RecordModalState> {
                     </CForm>
                 </CModalBody>
                 <CModalFooter>
-                    {mode === 'edit' && <CButton color='primary' onClick={this.onModalSubmit}>儲存</CButton>}
+                    <CButton color='primary' onClick={this.onModalSubmit}>儲存</CButton>
                     <CButton color='secondary' onClick={this.closeModal}>關閉</CButton>
                 </CModalFooter>
             </CModal>

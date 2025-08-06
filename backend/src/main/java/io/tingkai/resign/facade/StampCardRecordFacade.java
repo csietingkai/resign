@@ -12,6 +12,7 @@ import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Service;
 
 import io.tingkai.base.model.exception.FieldMissingException;
+import io.tingkai.base.model.exception.NotExistException;
 import io.tingkai.base.util.BaseAppUtil;
 import io.tingkai.resign.constant.DatabaseConstant;
 import io.tingkai.resign.constant.MessageConstant;
@@ -36,15 +37,11 @@ public class StampCardRecordFacade {
 	}
 
 	public List<StampCardRecord> queryByCardId(UUID cardId) {
-		List<StampCardRecord> entities = stampCardRecordDao.findByCardId(cardId);
-		if (entities.size() == 0) {
-			log.trace(MessageFormat.format(MessageConstant.QUERY_NO_DATA, DatabaseConstant.TABLE_STAMP_CARD_RECORD));
-		}
-		return entities;
+		return queryByDateAndCoworkerId(cardId, null, null, null);
 	}
 
 	public List<StampCardRecord> queryByDateAndCoworkerId(UUID cardId, @Nullable LocalDate startDate, @Nullable LocalDate endDate, @Nullable UUID coworkerId) {
-		List<StampCardRecord> entities = stampCardRecordDao.findByCardId(cardId);
+		List<StampCardRecord> entities = stampCardRecordDao.findByCardIdOrderByDateAsc(cardId);
 		// @formatter:off
 		entities = entities.stream()
 				.filter(x -> !BaseAppUtil.isPresent(startDate) || x.getDate().toLocalDate().compareTo(startDate) >= 0)
@@ -65,6 +62,20 @@ public class StampCardRecordFacade {
 		return stampCardRecordDao.save(entity);
 	}
 
+	public StampCardRecord update(StampCardRecord entity) throws FieldMissingException, NotExistException {
+		if (!BaseAppUtil.isAllPresent(entity, entity.getId(), entity.getCardId(), entity.getCoworkerId(), entity.getDate(), entity.getPoint())) {
+			throw new FieldMissingException();
+		}
+		Optional<StampCardRecord> optional = stampCardRecordDao.findById(entity.getId());
+		if (optional.isEmpty()) {
+			throw new NotExistException();
+		}
+		StampCardRecord updateEntity = optional.get();
+		updateEntity.setCoworkerId(entity.getCoworkerId());
+		updateEntity.setDate(entity.getDate());
+		updateEntity.setPoint(entity.getPoint());
+		return stampCardRecordDao.save(updateEntity);
+	}
 
 	public void remove(UUID id) {
 		this.stampCardRecordDao.deleteById(id);

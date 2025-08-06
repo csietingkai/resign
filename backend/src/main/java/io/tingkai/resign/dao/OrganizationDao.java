@@ -5,8 +5,8 @@ import java.util.UUID;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
-import io.tingkai.resign.entity.Coworker;
+import io.tingkai.resign.entity.Organization;
 
 @Repository
-public interface CoworkerDao extends JpaRepository<Coworker, UUID> {
+public interface OrganizationDao extends JpaRepository<Organization, UUID> {
 }

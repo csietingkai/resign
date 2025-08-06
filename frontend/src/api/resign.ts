@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { COWORKER_PATH, GET_LEADERBOARD_PATH, USER_INFO_PATH, POST_INIT_PATH, STAMP_CARD_PATH, STAMP_CARD_RECORD_PATH, STAMP_CARD_RECORDS_PATH } from './Constant';
+import { USER_INFO_PATH, POST_INIT_PATH, STAMP_CARD_RECORD_PATH, STAMP_CARD_RECORDS_PATH, ORG_COWORKER_PATH, STAMP_CARD_PATH } from './Constant';
 import * as AppUtil from '../util/AppUtil';
 import { ApiResponse, SimpleResponse } from '../util/Interface';
 
@@ -15,15 +15,6 @@ export interface StampCard {
     point: number;
 }
 
-interface ExtraInfo {
-    recordId: string;
-    recordDate: string;
-}
-
-export interface StampCardInfo extends StampCard {
-    extraInfos: ExtraInfo[];
-}
-
 export interface StampCardRecord {
     id: string;
     cardId: string;
@@ -33,13 +24,20 @@ export interface StampCardRecord {
     description?: string;
 }
 
+export interface StampCardRecordVo extends StampCardRecord {
+    orgId: string;
+}
+
 export interface InsertStampCardRecordRequest {
-    id: string;
     cardId: string;
     date: string;
     coworkerId: string;
     point: number;
     description?: string;
+}
+
+export interface UpdateStampCardRecordRequest extends InsertStampCardRecordRequest {
+    id: string;
 }
 
 export interface Coworker {
@@ -51,17 +49,17 @@ export interface Coworker {
     hired: boolean;
 }
 
-export interface DeptCoworkerInfo {
-    dept: string;
+export interface OrganizationCoworkerInfo {
+    orgId: string;
+    orgName: string;
     coworkers: Coworker[];
 }
 
 export interface UserInfoResponse extends ApiResponse<UserInfo> { }
-export interface StampCardResponse extends ApiResponse<StampCardInfo> { }
-export interface StampCardRecordResponse extends ApiResponse<StampCardRecord> { }
+export interface StampCardResponse extends ApiResponse<StampCard> { }
+export interface StampCardRecordResponse extends ApiResponse<StampCardRecordVo> { }
 export interface StampCardRecordsResponse extends ApiResponse<StampCardRecord[]> { }
-export interface DeptCoworkerResponse extends ApiResponse<DeptCoworkerInfo[]> { }
-export interface LeadingStampCardsResponse extends ApiResponse<StampCard[]> { }
+export interface OrgCoworkerInfosResponse extends ApiResponse<OrganizationCoworkerInfo[]> { }
 
 const getUserInfo = async (): Promise<UserInfoResponse> => {
     const response = await axios.get(USER_INFO_PATH);
@@ -81,14 +79,14 @@ const updateUserInfo = async (maxStampCnt: number): Promise<SimpleResponse> => {
     return data;
 };
 
-const getStampCardInfo = async (): Promise<StampCardResponse> => {
+const getStampCard = async (): Promise<StampCardResponse> => {
     const response = await axios.get(STAMP_CARD_PATH);
     const data: StampCardResponse = response.data;
     return data;
 };
 
-const fetchStampCardRecord = async (id: string): Promise<StampCardRecordResponse> => {
-    const response = await axios.get(STAMP_CARD_RECORD_PATH, { params: { id } });
+const getStampCardRecord = async (recordId: string): Promise<StampCardRecordResponse> => {
+    const response = await axios.get(STAMP_CARD_RECORD_PATH, { params: { recordId } });
     const data: StampCardRecordResponse = response.data;
     return data;
 };
@@ -99,14 +97,20 @@ const insertStampCardRecord = async (stampCardRecord: InsertStampCardRecordReque
     return data;
 };
 
+const updateStampCardRecord = async (stampCardRecord: UpdateStampCardRecordRequest): Promise<SimpleResponse> => {
+    const response = await axios.patch(STAMP_CARD_RECORD_PATH, stampCardRecord);
+    const data: SimpleResponse = response.data;
+    return data;
+};
+
 const removeStampCardRecord = async (recordId: string): Promise<SimpleResponse> => {
     const response = await axios.delete(STAMP_CARD_RECORD_PATH, { params: { recordId } });
     const data: SimpleResponse = response.data;
     return data;
 };
 
-const fetchStampCardRecords = async (startDate?: Date, endDate?: Date, dept?: string, coworkerId?: string): Promise<StampCardRecordsResponse> => {
-    const params: any = { dept, coworkerId };
+const getStampCardRecords = async (startDate?: Date, endDate?: Date, coworkerId?: string): Promise<StampCardRecordsResponse> => {
+    const params: any = { coworkerId };
     if (!isNaN((startDate as any)?.getTime())) {
         params.startDate = AppUtil.toDateStr(startDate, 'YYYY-MM-DD') || '';
     }
@@ -118,16 +122,11 @@ const fetchStampCardRecords = async (startDate?: Date, endDate?: Date, dept?: st
     return data;
 };
 
-const getDeptCoworkerOptions = async (): Promise<DeptCoworkerResponse> => {
-    const response = await axios.get(COWORKER_PATH);
-    const data: DeptCoworkerResponse = response.data;
+const getOrgCoworkerOptions = async (): Promise<OrgCoworkerInfosResponse> => {
+    const response = await axios.get(ORG_COWORKER_PATH);
+
+    const data: OrgCoworkerInfosResponse = response.data;
     return data;
 };
 
-const getLeading = async (size: number = 5): Promise<LeadingStampCardsResponse> => {
-    const response = await axios.get(GET_LEADERBOARD_PATH, { params: { size } });
-    const data: LeadingStampCardsResponse = response.data;
-    return data;
-};
-
-export default { getUserInfo, postInit, updateUserInfo, getStampCardInfo, fetchStampCardRecord, insertStampCardRecord, removeStampCardRecord, fetchStampCardRecords, getDeptCoworkerOptions, getLeading };
+export default { getUserInfo, postInit, updateUserInfo, getStampCard, getStampCardRecord, insertStampCardRecord, updateStampCardRecord, removeStampCardRecord, getStampCardRecords, getOrgCoworkerOptions };

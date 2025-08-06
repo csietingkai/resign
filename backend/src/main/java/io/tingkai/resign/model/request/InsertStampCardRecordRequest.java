@@ -8,7 +8,6 @@ import lombok.Data;
 
 @Data
 public class InsertStampCardRecordRequest {
-	protected UUID id;
 	protected UUID cardId;
 	protected LocalDate date;
 	protected UUID coworkerId;
@@ -17,7 +16,6 @@ public class InsertStampCardRecordRequest {
 
 	public StampCardRecord toEntity() {
 		StampCardRecord entity = new StampCardRecord();
-		entity.setId(id);
 		entity.setCardId(cardId);
 		entity.setDate(date.atStartOfDay());
 		entity.setCoworkerId(coworkerId);

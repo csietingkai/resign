@@ -1,18 +1,19 @@
 import React, { Dispatch } from 'react';
 import { connect } from 'react-redux';
-import { CCard, CCardBody, CCol, CRow } from '@coreui/react';
-import { SetNotifyDispatcher, SetStampCardInfoDispatcher, SetUserInfoDispatcher } from '../reducer/PropsMapper';
-import { getDeptCoworkerOptions, getMaxStampCnt, getStampCardInfo, ReduxState } from '../reducer/Selector';
-import ResignApi, { DeptCoworkerInfo, StampCardInfo, UserInfo } from '../api/resign';
+import { SetNotifyDispatcher, SetStampCardRecordsDispatcher } from '../reducer/PropsMapper';
+import { getMaxStampCnt, getOrgCoworkerOptions, getStampCard, getStampCardRecords, ReduxState } from '../reducer/Selector';
+import ResignApi, { OrganizationCoworkerInfo, StampCard, StampCardRecord, UserInfo } from '../api/resign';
 import * as AppUtil from '../util/AppUtil';
 import { Action } from '../util/Interface';
 import RecordModal, { RecordModalMode } from './include/RecordModal';
+import { CCard, CCardBody, CCol, CRow } from '@coreui/react';
 
 export interface DashboardProps {
-    stampCardInfo: StampCardInfo;
-    cnt: number;
-    deptOptions: DeptCoworkerInfo[];
-    setStampCardInfo: (stampCardInfo: StampCardInfo) => void;
+    maxStampCnt: number;
+    stampCard: StampCard;
+    stampCardRecords: StampCardRecord[];
+    orgCoworkerOptions: OrganizationCoworkerInfo[];
+    setStampCardRecords: (stampCardRecords: StampCardRecord[]) => void;
     notify: (message: string) => void;
 }
 
@@ -25,35 +26,39 @@ class Dashboard extends React.Component<DashboardProps, DashboardState> {
 
     constructor(props: DashboardProps) {
         super(props);
-        const coworkerOptions = {};
-        for (const opt of props.deptOptions) {
-            const { dept, coworkers } = opt;
-            coworkerOptions[dept] = coworkers;
-        }
         this.state = {
             recordModalMode: ''
         };
     }
 
     private openRecordModal = (recordId?: string) => {
-        this.setState({ recordModalMode: !!recordId ? 'view' : 'edit', currentRecordId: recordId });
+        this.setState({ recordModalMode: !!recordId ? 'edit' : 'insert', currentRecordId: recordId });
     };
 
     private renderStamps = (): React.ReactNode[] => {
-        const { stampCardInfo, cnt } = this.props;
+        const { stampCardRecords, maxStampCnt } = this.props;
+        const stamps: { date: Date, recordId: string }[] = [];
+        for (let i = 0; i < stampCardRecords.length; i++) {
+            for (let j = 0; j < stampCardRecords[i].point; j++) {
+                stamps.push({
+                    date: stampCardRecords[i].date,
+                    recordId: stampCardRecords[i].id
+                })
+            }
+        }
         const cubes: React.ReactNode[] = [];
-        for (let i = 0; i < cnt; i++) {
+        for (let i = 0; i < maxStampCnt; i++) {
             let backgroundColor: string = 'var(--cui-gray-300)';
-            if (stampCardInfo?.extraInfos?.length > i) {
+            if (stamps.length > i) {
                 backgroundColor = 'var(--cui-danger)';
             }
             let text: string = `${AppUtil.prefixZero(i + 1)}`;
-            if (stampCardInfo?.extraInfos?.length > i) {
-                text = stampCardInfo?.extraInfos[i]?.recordDate;
+            if (stamps.length > i) {
+                text = AppUtil.toDateStr(stamps[i].date, 'MM-DD') || '';
             }
             cubes.push(
                 <CCol xs={4} sm={3} md={2} lg={1} key={`cell-${i}`} style={{ paddingLeft: 'calc(var(--cui-gutter-x) * 0.3)', paddingRight: 'calc(var(--cui-gutter-x) * 0.3)' }}>
-                    <CCard onClick={() => this.openRecordModal(stampCardInfo.extraInfos[i]?.recordId)}>
+                    <CCard onClick={() => this.openRecordModal(stamps[i]?.recordId)}>
                         <CCardBody className='align-items-center' style={{ padding: '0.75rem 0.75rem' }}>
                             <div className='text-white p-2' style={{ backgroundColor }}>
                                 <div className='mt-1 mb-1 text-center'>{text}</div>
@@ -67,7 +72,7 @@ class Dashboard extends React.Component<DashboardProps, DashboardState> {
     };
 
     render(): React.ReactNode {
-        const { stampCardInfo, deptOptions, setStampCardInfo } = this.props;
+        const { stampCard, orgCoworkerOptions, setStampCardRecords } = this.props;
         const { recordModalMode, currentRecordId } = this.state;
         return (
             <React.Fragment>
@@ -76,29 +81,32 @@ class Dashboard extends React.Component<DashboardProps, DashboardState> {
                 </CRow>
                 <RecordModal
                     mode={recordModalMode}
-                    cardId={stampCardInfo?.id || ''}
-                    deptOptions={deptOptions}
+                    cardId={stampCard?.id || ''}
+                    orgCoworkerOptions={orgCoworkerOptions}
                     recordId={currentRecordId}
                     onClose={() => this.setState({ recordModalMode: '', currentRecordId: undefined})}
                     afterSubmit={() => {
-                        ResignApi.getStampCardInfo().then(({ data }) => setStampCardInfo(data));
+                        ResignApi.getStampCardRecords().then(({ data }) => setStampCardRecords(data));
                         this.setState({ recordModalMode: '' });
                     }}
                 />
             </React.Fragment>
         );
     }
-} const mapStateToProps = (state: ReduxState) => {
+}
+
+const mapStateToProps = (state: ReduxState) => {
     return {
-        stampCardInfo: getStampCardInfo(state),
-        cnt: getMaxStampCnt(state),
-        deptOptions: getDeptCoworkerOptions(state)
+        maxStampCnt: getMaxStampCnt(state),
+        stampCard: getStampCard(state),
+        stampCardRecords: getStampCardRecords(state),
+        orgCoworkerOptions: getOrgCoworkerOptions(state)
     };
 };
 
-const mapDispatchToProps = (dispatch: Dispatch<Action<UserInfo | StampCardInfo | string | undefined>>) => {
+const mapDispatchToProps = (dispatch: Dispatch<Action<StampCardRecord[] | UserInfo | string | undefined>>) => {
     return {
-        setStampCardInfo: SetStampCardInfoDispatcher(dispatch),
+        setStampCardRecords: SetStampCardRecordsDispatcher(dispatch),
         notify: SetNotifyDispatcher(dispatch)
     };
 };

@@ -1,9 +1,7 @@
 package io.tingkai.resign.service;
 
 import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -20,19 +18,19 @@ import io.tingkai.base.model.exception.AlreadyExistException;
 import io.tingkai.base.model.exception.FieldMissingException;
 import io.tingkai.base.model.exception.NotExistException;
 import io.tingkai.base.util.BaseAppUtil;
-import io.tingkai.base.util.BaseStringUtil;
 import io.tingkai.resign.entity.Coworker;
+import io.tingkai.resign.entity.Organization;
 import io.tingkai.resign.entity.StampCard;
 import io.tingkai.resign.entity.StampCardRecord;
 import io.tingkai.resign.entity.UserInfo;
 import io.tingkai.resign.facade.CoworkerFacade;
+import io.tingkai.resign.facade.OrganizationFacade;
 import io.tingkai.resign.facade.StampCardFacade;
 import io.tingkai.resign.facade.StampCardRecordFacade;
 import io.tingkai.resign.facade.UserInfoFacade;
 import io.tingkai.resign.model.request.UpdateUserSettingReq;
-import io.tingkai.resign.model.vo.DeptCoworkerInfo;
-import io.tingkai.resign.model.vo.StampCardInfo;
-import io.tingkai.resign.model.vo.StampCardInfo.ExtraInfo;
+import io.tingkai.resign.model.vo.OrganizationCoworkerInfo;
+import io.tingkai.resign.model.vo.StampCardRecordVo;
 import lombok.extern.slf4j.Slf4j;
 
 @Service
@@ -44,13 +42,16 @@ public class ResignService {
 	private UserInfoFacade userInfoFacade;
 
 	@Autowired
+	private OrganizationFacade organizationFacade;
+
+	@Autowired
+	private CoworkerFacade coworkerFacade;
+
+	@Autowired
 	private StampCardFacade stampCardFacade;
 
 	@Autowired
 	private StampCardRecordFacade stampCardRecordFacade;
-
-	@Autowired
-	private CoworkerFacade coworkerFacade;
 
 	public UserInfo getUserInfo() {
 		String userName = ContextUtil.getUserName();
@@ -86,26 +87,34 @@ public class ResignService {
 		userInfoFacade.update(userInfo);
 	}
 
-	public StampCardInfo getStampCardInfo() {
-		StampCard stampCard = stampCardFacade.queryByUserName(ContextUtil.getUserName());
-		StampCardInfo info = new StampCardInfo();
-		info.transform(stampCard);
-		List<StampCardRecord> records = stampCardRecordFacade.queryByCardId(stampCard.getId());
-		List<ExtraInfo> extraInfos = new ArrayList<ExtraInfo>();
-		records.forEach(r -> {
-			for (int i = 0; i < r.getPoint(); i++) {
-				ExtraInfo extraInfo = new ExtraInfo();
-				extraInfo.setRecordId(r.getId());
-				extraInfo.setRecordDate(DateTimeFormatter.ofPattern("MM/dd").format(r.getDate()));
-				extraInfos.add(extraInfo);
-			}
-		});
-		info.setExtraInfos(extraInfos);
-		return info;
+	public StampCard getStampCard() {
+		return stampCardFacade.queryByUserName(ContextUtil.getUserName());
 	}
 
-	public StampCardRecord fetchStampCardRecord(UUID id) {
-		return stampCardRecordFacade.queryById(id);
+	public List<OrganizationCoworkerInfo> getOrgWorkerOptions() {
+		List<Organization> orgs = organizationFacade.queryAll();
+		Map<UUID, List<Coworker>> coworkers = coworkerFacade.queryAll().stream().collect(Collectors.groupingBy(Coworker::getOrganizationId));
+		return orgs.stream().map(x -> {
+			OrganizationCoworkerInfo info = new OrganizationCoworkerInfo();
+			info.setOrgId(x.getId());
+			info.setOrgName(x.getName());
+			info.setCoworkers(coworkers.getOrDefault(x.getId(), new ArrayList<>()));
+			return info;
+		}).collect(Collectors.toList());
+	}
+
+	public List<StampCardRecord> getStampCardRecords(@Nullable LocalDate startDate, @Nullable LocalDate endDate, @Nullable UUID coworkerId) {
+		StampCard stampCard = stampCardFacade.queryByUserName(ContextUtil.getUserName());
+		return stampCardRecordFacade.queryByDateAndCoworkerId(stampCard.getId(), startDate, endDate, coworkerId);
+	}
+
+	public StampCardRecordVo getStampCardRecord(UUID recordId) {
+		StampCardRecordVo vo = new StampCardRecordVo();
+		StampCardRecord stamCardRecord = stampCardRecordFacade.queryById(recordId);
+		vo.transform(stamCardRecord);
+		Coworker coworker = coworkerFacade.queryById(stamCardRecord.getCoworkerId());
+		vo.setOrgId(coworker.getOrganizationId());
+		return vo;
 	}
 
 	@Transactional
@@ -118,50 +127,22 @@ public class ResignService {
 	}
 
 	@Transactional
+	public void updateStampCardRecord(StampCardRecord updateStampCardRecord) throws FieldMissingException, NotExistException {
+		StampCardRecord origStampCardRecord = stampCardRecordFacade.queryById(updateStampCardRecord.getId());
+
+		StampCard stampCard = stampCardFacade.queryById(updateStampCardRecord.getCardId());
+		stampCard.setPoint(stampCard.getPoint() + updateStampCardRecord.getPoint() - origStampCardRecord.getPoint());
+		stampCard = stampCardFacade.update(stampCard);
+
+		updateStampCardRecord = stampCardRecordFacade.update(updateStampCardRecord);
+	}
+
+	@Transactional
 	public void removeStampCardRecord(UUID recordId) throws FieldMissingException, NotExistException {
 		StampCardRecord stampCardRecord = stampCardRecordFacade.queryById(recordId);
 		StampCard stampCard = stampCardFacade.queryById(stampCardRecord.getCardId());
 		stampCard.setPoint(stampCard.getPoint() - stampCardRecord.getPoint());
 		stampCard = stampCardFacade.update(stampCard);
 		stampCardRecordFacade.remove(recordId);
-	}
-
-	public List<StampCardRecord> fetchStampCardRecords(@Nullable LocalDate startDate, @Nullable LocalDate endDate, @Nullable String dept, @Nullable UUID coworkerId) {
-		StampCard stampCard = stampCardFacade.queryByUserName(ContextUtil.getUserName());
-		List<StampCardRecord> stampCardRecords = stampCardRecordFacade.queryByDateAndCoworkerId(stampCard.getId(), startDate, endDate, coworkerId);
-		if (BaseStringUtil.isBlank(dept)) {
-			return stampCardRecords;
-		}
-		List<Coworker> coworkers = coworkerFacade.queryAll();
-		Map<UUID, String> belongToDept = new HashMap<UUID, String>();
-		for (Coworker coworker : coworkers) {
-			belongToDept.put(coworker.getId(), coworker.getDept());
-		}
-		stampCardRecords = stampCardRecords.stream().filter(x -> BaseStringUtil.equals(belongToDept.get(x.getCoworkerId()), dept)).collect(Collectors.toList());
-		return stampCardRecords;
-	}
-
-	public List<DeptCoworkerInfo> getCoworkerOptions() {
-		List<String> depts = coworkerFacade.queryAllDept();
-		List<Coworker> coworkers = coworkerFacade.queryAll();
-
-		List<DeptCoworkerInfo> infos = new ArrayList<DeptCoworkerInfo>();
-		for (String dept : depts) {
-			DeptCoworkerInfo info = new DeptCoworkerInfo();
-			info.setDept(dept);
-			info.setCoworkers(new ArrayList<Coworker>());
-			for (Coworker coworker : coworkers) {
-				if (BaseStringUtil.equals(dept, coworker.getDept())) {
-					info.getCoworkers().add(coworker);
-				}
-			}
-			infos.add(info);
-		}
-		infos.sort((a, b) -> a.getDept().compareTo(b.getDept()));
-		return infos;
-	}
-
-	public List<StampCard> getLeadingStampCards(int size) {
-		return stampCardFacade.queryTop(size);
 	}
 }
