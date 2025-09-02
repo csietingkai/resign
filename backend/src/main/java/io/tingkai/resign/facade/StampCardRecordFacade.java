@@ -40,7 +40,15 @@ public class StampCardRecordFacade {
 		return queryByDateAndCoworkerId(cardId, null, null, null);
 	}
 
-	public List<StampCardRecord> queryByDateAndCoworkerId(UUID cardId, @Nullable LocalDate startDate, @Nullable LocalDate endDate, @Nullable UUID coworkerId) {
+	public List<StampCardRecord> queryByCoworkerId(UUID coworkerId) {
+		List<StampCardRecord> entities = stampCardRecordDao.findByCoworkerId(coworkerId);
+		if (entities.size() == 0) {
+			log.trace(MessageFormat.format(MessageConstant.QUERY_NO_DATA, DatabaseConstant.TABLE_STAMP_CARD_RECORD));
+		}
+		return entities;
+	}
+
+	public List<StampCardRecord> queryByDateAndCoworkerId(@Nullable UUID cardId, @Nullable LocalDate startDate, @Nullable LocalDate endDate, @Nullable UUID coworkerId) {
 		List<StampCardRecord> entities = stampCardRecordDao.findByCardIdOrderByDateAsc(cardId);
 		// @formatter:off
 		entities = entities.stream()

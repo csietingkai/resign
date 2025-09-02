@@ -29,7 +29,9 @@ import io.tingkai.resign.facade.StampCardFacade;
 import io.tingkai.resign.facade.StampCardRecordFacade;
 import io.tingkai.resign.facade.UserInfoFacade;
 import io.tingkai.resign.model.request.UpdateUserSettingReq;
+import io.tingkai.resign.model.vo.CoworkerVo;
 import io.tingkai.resign.model.vo.OrganizationCoworkerInfo;
+import io.tingkai.resign.model.vo.OrganizationVo;
 import io.tingkai.resign.model.vo.StampCardRecordVo;
 import lombok.extern.slf4j.Slf4j;
 
@@ -89,6 +91,63 @@ public class ResignService {
 
 	public StampCard getStampCard() {
 		return stampCardFacade.queryByUserName(ContextUtil.getUserName());
+	}
+
+	public List<OrganizationVo> getOrganizations() {
+		List<Organization> orgs = organizationFacade.queryAll();
+		List<OrganizationVo> vos = new ArrayList<>();
+		orgs.forEach(o -> {
+			OrganizationVo vo = new OrganizationVo();
+			vo.transform(o);
+			List<Coworker> coworkers = coworkerFacade.queryByOrganizationId(o.getId());
+			vo.setDeletable(coworkers.size() == 0);
+			vos.add(vo);
+		});
+		return vos;
+	}
+
+	public Organization getOrganization(UUID organizationId) {
+		return organizationFacade.queryById(organizationId);
+	}
+
+	public void insertOrganization(Organization entity) throws FieldMissingException {
+		organizationFacade.insert(entity);
+	}
+
+	public void updateOrganization(Organization entity) throws FieldMissingException, NotExistException {
+		organizationFacade.update(entity);
+	}
+
+	public void removeOrganization(UUID organizationId) {
+		organizationFacade.remove(organizationId);
+	}
+
+	public List<CoworkerVo> getCoworkers(UUID organizationId) {
+		List<Coworker> coworkers = coworkerFacade.queryByOrganizationId(organizationId);
+		List<CoworkerVo> vos = new ArrayList<>();
+		coworkers.forEach(c -> {
+			CoworkerVo vo = new CoworkerVo();
+			vo.transform(c);
+			vo.setDeletable(stampCardRecordFacade.queryByCoworkerId(c.getId()).size() == 0);
+			vos.add(vo);
+		});
+		return vos;
+	}
+
+	public Coworker getCoworker(UUID coworkerId) {
+		return coworkerFacade.queryById(coworkerId);
+	}
+
+	public void insertCoworker(Coworker entity) throws FieldMissingException {
+		coworkerFacade.insert(entity);
+	}
+
+	public void updateCoworker(Coworker entity) throws FieldMissingException, NotExistException {
+		coworkerFacade.update(entity);
+	}
+
+	public void removeCoworker(UUID organizationId) {
+		coworkerFacade.remove(organizationId);
 	}
 
 	public List<OrganizationCoworkerInfo> getOrgWorkerOptions() {

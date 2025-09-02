@@ -115,6 +115,7 @@ export const reverseNumberComma = (str: string): number => {
 
 export const bindEnterKey = (onEnterKeyDown: () => void) => (event: React.KeyboardEvent<HTMLElement>) => {
     if (event.key === 'Enter' && ['file', 'select-one', 'textarea'].indexOf(event.target['type']) < 0) {
+        event.preventDefault();
         onEnterKeyDown();
     }
 }
