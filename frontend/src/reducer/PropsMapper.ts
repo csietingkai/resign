@@ -1,7 +1,7 @@
 import { Dispatch } from 'react';
-import { Login, Logout, SetLoading, Notify, SetSidebarFoldable, SetSidebarShow, SetUserInfo, SetStampCardRecords } from './Action';
+import { Login, Logout, SetLoading, Notify, SetSidebarFoldable, SetSidebarShow, SetUserInfo, SetStampCardRecords, SetOrgCoworkerInfos } from './Action';
 import { AuthToken } from '../api/auth';
-import { StampCardRecord, UserInfo } from '../api/resign';
+import { OrganizationCoworkerInfo, StampCardRecord, UserInfo } from '../api/resign';
 import { Action } from '../util/Interface';
 
 // auth
@@ -9,6 +9,7 @@ export const LoginDispatcher = (dispatch: Dispatch<Action<AuthToken>>) => (vo: A
 export const LogoutDispatcher = (dispatch: Dispatch<Action<undefined>>) => (): void => dispatch(Logout());
 
 export const SetUserInfoDispatcher = (dispatch: Dispatch<Action<UserInfo | undefined>>) => (userInfo: UserInfo): void => dispatch(SetUserInfo(userInfo));
+export const SetOrgCoworkerInfosDispatcher = (dispatch: Dispatch<Action<OrganizationCoworkerInfo[]>>) => (orgCoworkerInfos: OrganizationCoworkerInfo[]): void => dispatch(SetOrgCoworkerInfos(orgCoworkerInfos));
 export const SetStampCardRecordsDispatcher = (dispatch: Dispatch<Action<StampCardRecord[]>>) => (stampCardRecords: StampCardRecord[]): void => dispatch(SetStampCardRecords(stampCardRecords));
 
 // system setting

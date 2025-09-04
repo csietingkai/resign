@@ -3,9 +3,9 @@ import { connect } from 'react-redux';
 import { CRow, CCol, CCard, CCardHeader, CCardBody, CButton, CTable, CTableBody, CTableDataCell, CTableHead, CTableHeaderCell, CTableRow, CButtonGroup, CFormSelect, CInputGroup } from '@coreui/react';
 import { cilChevronRight, cilPen, cilPlus, cilTrash } from '@coreui/icons';
 import CIcon from '@coreui/icons-react';
-import { SetNotifyDispatcher } from '../reducer/PropsMapper';
+import { SetNotifyDispatcher, SetOrgCoworkerInfosDispatcher } from '../reducer/PropsMapper';
 import { ReduxState } from '../reducer/Selector';
-import ResignApi, { CoworkerVo, OrganizationVo } from '../api/resign';
+import ResignApi, { CoworkerVo, OrganizationCoworkerInfo, OrganizationVo } from '../api/resign';
 import AppConfirmModal from '../components/AppConfirmModal';
 import { Action } from '../util/Interface';
 import OrganizationModal, { OrganizationModalMode } from './include/OrganizationModal';
@@ -13,6 +13,7 @@ import CoworkerModal, { CoworkerModalMode } from './include/CoworkerModal';
 
 export interface CoworkerSettingPageProps {
     notify: (message: string) => void;
+    setOrgCoworkerInfos: (orgCoworkerInfos: OrganizationCoworkerInfo[]) => void;
 }
 
 export interface CoworkerSettingPageState {
@@ -292,6 +293,7 @@ class CoworkerSettingPage extends React.Component<CoworkerSettingPageProps, Cowo
                     afterSubmit={() => {
                         ResignApi.getCoworkers(selectOrganizationId).then(({ data: coworkers }) => this.setState({ coworkers }));
                         ResignApi.getOrganizations().then(({ data: organizations }) => this.setState({ organizations }));
+                        ResignApi.getOrgCoworkerOptions().then(({ data: orgCoworkerInfos }) => this.props.setOrgCoworkerInfos(orgCoworkerInfos));
                         this.setState({ showEditCoworkerModal: '', holdingCoworkerId: '' });
                     }}
                 />
@@ -303,6 +305,7 @@ class CoworkerSettingPage extends React.Component<CoworkerSettingPageProps, Cowo
                             await this.removeCoworker(this.state.holdingCoworkerId);
                             ResignApi.getCoworkers(selectOrganizationId).then(({ data: coworkers }) => this.setState({ coworkers }));
                             ResignApi.getOrganizations().then(({ data: organizations }) => this.setState({ organizations }));
+                            ResignApi.getOrgCoworkerOptions().then(({ data: orgCoworkerInfos }) => this.props.setOrgCoworkerInfos(orgCoworkerInfos));
                         }
                         this.setState({ showDeleteCoworkerModal: false, holdingCoworkerId: '' });
                     }}
@@ -317,9 +320,10 @@ const mapStateToProps = (state: ReduxState) => {
     };
 };
 
-const mapDispatchToProps = (dispatch: Dispatch<Action<string>>) => {
+const mapDispatchToProps = (dispatch: Dispatch<Action<string | OrganizationCoworkerInfo[]>>) => {
     return {
-        notify: SetNotifyDispatcher(dispatch)
+        notify: SetNotifyDispatcher(dispatch),
+        setOrgCoworkerInfos: SetOrgCoworkerInfosDispatcher(dispatch)
     };
 };
 
