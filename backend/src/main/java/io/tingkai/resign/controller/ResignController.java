@@ -20,7 +20,6 @@ import io.tingkai.resign.constant.MessageConstant;
 import io.tingkai.resign.entity.Coworker;
 import io.tingkai.resign.entity.Organization;
 import io.tingkai.resign.entity.StampCard;
-import io.tingkai.resign.entity.StampCardRecord;
 import io.tingkai.resign.entity.UserInfo;
 import io.tingkai.resign.model.request.InsertStampCardRecordRequest;
 import io.tingkai.resign.model.request.UpdateStampCardRecordRequest;
@@ -147,9 +146,9 @@ public class ResignController {
 	}
 
 	@RequestMapping(value = ResignController.STAMP_CARD_RECORDS_PATH, method = RequestMethod.GET)
-	public BaseResponse<List<StampCardRecord>> fetchStampCardRecords(@RequestParam(required = false) LocalDate startDate, @RequestParam(required = false) LocalDate endDate, @RequestParam(required = false) UUID coworkerId) throws FieldMissingException, NotExistException {
-		List<StampCardRecord> stampCardRecords = resignService.getStampCardRecords(startDate, endDate, coworkerId);
-		return new BaseResponse<List<StampCardRecord>>(true, stampCardRecords, MessageConstant.SUCCESS);
+	public BaseResponse<List<StampCardRecordVo>> fetchStampCardRecords(@RequestParam(required = false) LocalDate startDate, @RequestParam(required = false) LocalDate endDate, @RequestParam(required = false) UUID coworkerId) throws FieldMissingException, NotExistException {
+		List<StampCardRecordVo> stampCardRecords = resignService.getStampCardRecords(startDate, endDate, coworkerId);
+		return new BaseResponse<List<StampCardRecordVo>>(true, stampCardRecords, MessageConstant.SUCCESS);
 	}
 
 	@RequestMapping(value = ResignController.STAMP_CARD_RECORD_PATH, method = RequestMethod.POST)

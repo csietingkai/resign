@@ -1,14 +1,14 @@
 {
-  "name": "tingkai/money-frontend",
-  "version": "v2.13.3",
-  "description": "Frontend for Tingkai Money App",
+  "name": "tingkai/resign-frontend",
+  "version": "v1.0.0",
+  "description": "Frontend for Tingkai resign App",
   "homepage": ".",
   "bugs": {
-    "url": "https://github.com/csietingkai/money/issues"
+    "url": "https://github.com/csietingkai/resign/issues"
   },
   "repository": {
     "type": "git",
-    "url": "git@github.com:csietingkai/money.git"
+    "url": "git@github.com:csietingkai/resign.git"
   },
   "license": "MIT",
   "author": "Ting-Kai, Hu (https://github.com/csietingkai)",

@@ -11,5 +11,9 @@ import lombok.EqualsAndHashCode;
 @EqualsAndHashCode(callSuper = false)
 public class StampCardRecordVo extends StampCardRecord implements Transformable<StampCardRecord> {
 
-	protected UUID orgId;
+	protected UUID organizationId;
+
+	protected String organizationName;
+
+	protected String coworkerName;
 }

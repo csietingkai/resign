@@ -162,9 +162,21 @@ public class ResignService {
 		}).collect(Collectors.toList());
 	}
 
-	public List<StampCardRecord> getStampCardRecords(@Nullable LocalDate startDate, @Nullable LocalDate endDate, @Nullable UUID coworkerId) {
+	public List<StampCardRecordVo> getStampCardRecords(@Nullable LocalDate startDate, @Nullable LocalDate endDate, @Nullable UUID coworkerId) {
 		StampCard stampCard = stampCardFacade.queryByUserName(ContextUtil.getUserName());
-		return stampCardRecordFacade.queryByDateAndCoworkerId(stampCard.getId(), startDate, endDate, coworkerId);
+		List<StampCardRecord> records = stampCardRecordFacade.queryByDateAndCoworkerId(stampCard.getId(), startDate, endDate, coworkerId);
+		List<StampCardRecordVo> vos = new ArrayList<>();
+		records.forEach(r -> {
+			StampCardRecordVo vo = new StampCardRecordVo();
+			vo.transform(r);
+			Coworker coworker = coworkerFacade.queryById(r.getCoworkerId());
+			vo.setOrganizationId(coworker.getOrganizationId());
+			vo.setCoworkerName(coworker.getName());
+			Organization org = organizationFacade.queryById(coworker.getOrganizationId());
+			vo.setOrganizationName(org.getName());
+			vos.add(vo);
+		});
+		return vos;
 	}
 
 	public StampCardRecordVo getStampCardRecord(UUID recordId) {
@@ -172,7 +184,10 @@ public class ResignService {
 		StampCardRecord stamCardRecord = stampCardRecordFacade.queryById(recordId);
 		vo.transform(stamCardRecord);
 		Coworker coworker = coworkerFacade.queryById(stamCardRecord.getCoworkerId());
-		vo.setOrgId(coworker.getOrganizationId());
+		vo.setOrganizationId(coworker.getOrganizationId());
+		vo.setCoworkerName(coworker.getName());
+		Organization org = organizationFacade.queryById(coworker.getOrganizationId());
+		vo.setOrganizationName(org.getName());
 		return vo;
 	}
 

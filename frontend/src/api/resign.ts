@@ -25,7 +25,9 @@ export interface StampCardRecord {
 }
 
 export interface StampCardRecordVo extends StampCardRecord {
-    orgId: string;
+    organizationId: string;
+    organizationName: string;
+    coworkerName: string;
 }
 
 export interface InsertStampCardRecordRequest {
@@ -69,7 +71,7 @@ export interface OrganizationCoworkerInfo {
 export interface UserInfoResponse extends ApiResponse<UserInfo> { }
 export interface StampCardResponse extends ApiResponse<StampCard> { }
 export interface StampCardRecordResponse extends ApiResponse<StampCardRecordVo> { }
-export interface StampCardRecordsResponse extends ApiResponse<StampCardRecord[]> { }
+export interface StampCardRecordsResponse extends ApiResponse<StampCardRecordVo[]> { }
 export interface OrganizationsResponse extends ApiResponse<OrganizationVo[]> { }
 export interface OrganizationResponse extends ApiResponse<Organization> { }
 export interface CoworkersResponse extends ApiResponse<CoworkerVo[]> { }

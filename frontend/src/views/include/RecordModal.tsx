@@ -61,7 +61,7 @@ class RecordModal extends React.Component<RecordModalProps, RecordModalState> {
         form.id = data.id;
         form.coworkerId = data.coworkerId;
         form.date = data.date;
-        form.orgId = data.orgId;
+        form.orgId = data.organizationId;
         form.point = data.point;
         form.coworkerId = data.coworkerId;
         form.description = data.description;

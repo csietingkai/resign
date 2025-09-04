@@ -5,11 +5,11 @@ import { CButton, CButtonGroup, CCard, CCardBody, CCardFooter, CCardHeader, CCol
 import CIcon from '@coreui/icons-react';
 import { cilChevronDoubleRight, cilChevronRight, cilPen, cilTrash } from '@coreui/icons';
 import { SetNotifyDispatcher, SetStampCardRecordsDispatcher } from '../reducer/PropsMapper';
-import { getOrgCoworkerOptions, getStampCard, getStampCardId, ReduxState } from '../reducer/Selector';
+import { getOrgCoworkerOptions, getStampCardId, ReduxState } from '../reducer/Selector';
 import AppConfirmModal from '../components/AppConfirmModal';
 import AppPagination from '../components/AppPagination';
 import RecordModal, { RecordModalMode } from './include/RecordModal';
-import ResignApi, { OrganizationCoworkerInfo, StampCardRecord } from '../api/resign';
+import ResignApi, { OrganizationCoworkerInfo, StampCardRecord, StampCardRecordVo } from '../api/resign';
 import * as AppUtil from '../util/AppUtil';
 import { Action } from '../util/Interface';
 
@@ -31,7 +31,7 @@ export interface StampRecordPageState {
         startDate: boolean;
         endDate: boolean;
     };
-    searchResult: StampCardRecord[];
+    searchResult: StampCardRecordVo[];
     searchResultPage: number;
     showDeleteRecordModal: boolean;
     recordModalMode: RecordModalMode;
@@ -226,7 +226,7 @@ class StampRecordPage extends React.Component<StampRecordPageProps, StampRecordP
                                         searchResult.map(r =>
                                             <CTableRow key={r.id}>
                                                 <CTableDataCell className='text-nowrap text-center'>{AppUtil.toDateStr(r.date)}</CTableDataCell>
-                                                <CTableDataCell className='text-nowrap text-center'>{}</CTableDataCell>
+                                                <CTableDataCell className='text-nowrap text-center'>{r.coworkerName}</CTableDataCell>
                                                 <CTableDataCell className='text-nowrap text-center'>{r.point}</CTableDataCell>
                                                 <CTableDataCell>{r.description}</CTableDataCell>
                                                 <CTableDataCell>
