@@ -82,6 +82,7 @@ public class StampCardRecordFacade {
 		updateEntity.setCoworkerId(entity.getCoworkerId());
 		updateEntity.setDate(entity.getDate());
 		updateEntity.setPoint(entity.getPoint());
+		updateEntity.setDescription(entity.getDescription());
 		return stampCardRecordDao.save(updateEntity);
 	}
 
