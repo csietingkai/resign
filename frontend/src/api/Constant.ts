@@ -18,3 +18,4 @@ export const ORGANIZATION_PATH: string = RESIGN_API_PREFIX + '/organization';
 export const COWORKERS_PATH: string = RESIGN_API_PREFIX + '/coworkers';
 export const COWORKER_PATH: string = RESIGN_API_PREFIX + '/coworker';
 export const ORG_COWORKER_PATH: string = RESIGN_API_PREFIX + '/orgcoworkers';
+export const LEADERBOARD_PATH: string = RESIGN_API_PREFIX + '/leaderboard';

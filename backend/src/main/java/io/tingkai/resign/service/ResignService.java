@@ -1,5 +1,7 @@
 package io.tingkai.resign.service;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
@@ -30,6 +32,9 @@ import io.tingkai.resign.facade.StampCardRecordFacade;
 import io.tingkai.resign.facade.UserInfoFacade;
 import io.tingkai.resign.model.request.UpdateUserSettingReq;
 import io.tingkai.resign.model.vo.CoworkerVo;
+import io.tingkai.resign.model.vo.LeaderboardVo;
+import io.tingkai.resign.model.vo.LeaderboardVo.ByCoworker;
+import io.tingkai.resign.model.vo.LeaderboardVo.ByPoint;
 import io.tingkai.resign.model.vo.OrganizationCoworkerInfo;
 import io.tingkai.resign.model.vo.OrganizationVo;
 import io.tingkai.resign.model.vo.StampCardRecordVo;
@@ -218,5 +223,38 @@ public class ResignService {
 		stampCard.setPoint(stampCard.getPoint() - stampCardRecord.getPoint());
 		stampCard = stampCardFacade.update(stampCard);
 		stampCardRecordFacade.remove(recordId);
+	}
+
+	public LeaderboardVo getLeaderboard(int cnt) {
+		LeaderboardVo vo = new LeaderboardVo();
+
+		List<ByPoint> bps = new ArrayList<>();
+		List<StampCard> stampCards = stampCardFacade.queryTop(cnt);
+		stampCards.forEach(sc -> {
+			UserInfo info = userInfoFacade.queryByUserName(sc.getUserName());
+			ByPoint bp = new ByPoint();
+			bp.setId(sc.getId());
+			bp.setName(sc.getUserName());
+			bp.setPoint(sc.getPoint());
+			bp.setTotal(info.getMaxStampCnt());
+			bp.setProgress(BigDecimal.valueOf(sc.getPoint()).divide(BigDecimal.valueOf(info.getMaxStampCnt())).setScale(2, RoundingMode.HALF_UP));
+			bps.add(bp);
+		});
+		vo.setByPoints(bps);
+
+		List<ByCoworker> bcs = new ArrayList<>();
+		List<Coworker> coworkers = coworkerFacade.queryAll();
+		coworkers.forEach(c -> {
+			List<StampCardRecord> rs = stampCardRecordFacade.queryByCoworkerId(c.getId());
+			ByCoworker bc = new ByCoworker();
+			bc.setId(c.getId());
+			bc.setName(c.getName());
+			bc.setPoint(rs.stream().mapToInt(StampCardRecord::getPoint).sum());
+			bcs.add(bc);
+		});
+		bcs.sort((a, b) -> b.getPoint() - a.getPoint());
+		vo.setByCoworkers(bcs.subList(0, Math.min(bcs.size(), cnt)));
+		return vo;
+
 	}
 }

@@ -25,6 +25,7 @@ import io.tingkai.resign.model.request.InsertStampCardRecordRequest;
 import io.tingkai.resign.model.request.UpdateStampCardRecordRequest;
 import io.tingkai.resign.model.request.UpdateUserSettingReq;
 import io.tingkai.resign.model.vo.CoworkerVo;
+import io.tingkai.resign.model.vo.LeaderboardVo;
 import io.tingkai.resign.model.vo.OrganizationCoworkerInfo;
 import io.tingkai.resign.model.vo.OrganizationVo;
 import io.tingkai.resign.model.vo.StampCardRecordVo;
@@ -45,6 +46,7 @@ public class ResignController {
 	public static final String COWORKERS_PATH = "/coworkers";
 	public static final String COWORKER_PATH = "/coworker";
 	public static final String ORG_COWORKER_PATH = "/orgcoworkers";
+	public static final String LEADERBOARD_PAYH = "/leaderboard";
 
 	@Autowired
 	private ResignService resignService;
@@ -167,5 +169,11 @@ public class ResignController {
 	public SimpleResponse removeStampCardRecord(@RequestParam UUID recordId) throws FieldMissingException, NotExistException {
 		resignService.removeStampCardRecord(recordId);
 		return new SimpleResponse(true);
+	}
+
+	@RequestMapping(value = ResignController.LEADERBOARD_PAYH, method = RequestMethod.GET)
+	public BaseResponse<LeaderboardVo> getLeaderboard(@RequestParam(defaultValue = "10") int cnt) throws FieldMissingException, NotExistException {
+		LeaderboardVo vo = resignService.getLeaderboard(cnt);
+		return new BaseResponse<LeaderboardVo>(true, vo, MessageConstant.SUCCESS);
 	}
 }

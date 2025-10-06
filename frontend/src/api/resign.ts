@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { USER_INFO_PATH, POST_INIT_PATH, STAMP_CARD_RECORD_PATH, STAMP_CARD_RECORDS_PATH, ORG_COWORKER_PATH, STAMP_CARD_PATH, ORGANIZATIONS_PATH, COWORKERS_PATH, ORGANIZATION_PATH, COWORKER_PATH } from './Constant';
+import { USER_INFO_PATH, POST_INIT_PATH, STAMP_CARD_RECORD_PATH, STAMP_CARD_RECORDS_PATH, ORG_COWORKER_PATH, STAMP_CARD_PATH, ORGANIZATIONS_PATH, COWORKERS_PATH, ORGANIZATION_PATH, COWORKER_PATH, LEADERBOARD_PATH } from './Constant';
 import * as AppUtil from '../util/AppUtil';
 import { ApiResponse, SimpleResponse } from '../util/Interface';
 
@@ -68,6 +68,25 @@ export interface OrganizationCoworkerInfo {
     coworkers: Coworker[];
 }
 
+export interface LeaderboardVo {
+    byPoints: ByPoint[];
+    byCoworkers: ByCoworker[];
+}
+
+export interface ByPoint {
+    id: string;
+    name: string;
+    point: number;
+    total: number;
+    progress: number;
+}
+
+export interface ByCoworker {
+    id: string;
+    name: string;
+    point: number;
+}
+
 export interface UserInfoResponse extends ApiResponse<UserInfo> { }
 export interface StampCardResponse extends ApiResponse<StampCard> { }
 export interface StampCardRecordResponse extends ApiResponse<StampCardRecordVo> { }
@@ -77,6 +96,7 @@ export interface OrganizationResponse extends ApiResponse<Organization> { }
 export interface CoworkersResponse extends ApiResponse<CoworkerVo[]> { }
 export interface CoworkerResponse extends ApiResponse<Coworker> { }
 export interface OrgCoworkerInfosResponse extends ApiResponse<OrganizationCoworkerInfo[]> { }
+export interface LeaderboardVoResponse extends ApiResponse<LeaderboardVo> { }
 
 const getUserInfo = async (): Promise<UserInfoResponse> => {
     const response = await axios.get(USER_INFO_PATH);
@@ -205,4 +225,10 @@ const getStampCardRecords = async (startDate?: Date, endDate?: Date, coworkerId?
     return data;
 };
 
-export default { getUserInfo, postInit, updateUserInfo, getStampCard, getStampCardRecord, insertStampCardRecord, updateStampCardRecord, removeStampCardRecord, getStampCardRecords, getOrganizations, getOrganization, insertOrganization, updateOrganization, removeOrganization, getCoworkers, getCoworker, insertCoworker, updateCoworker, removeCoworker, getOrgCoworkerOptions };
+const getLeaderboard = async (): Promise<LeaderboardVoResponse> => {
+    const response = await axios.get(LEADERBOARD_PATH);
+    const data: LeaderboardVoResponse = response.data;
+    return data;
+}
+
+export default { getUserInfo, postInit, updateUserInfo, getStampCard, getStampCardRecord, insertStampCardRecord, updateStampCardRecord, removeStampCardRecord, getStampCardRecords, getOrganizations, getOrganization, insertOrganization, updateOrganization, removeOrganization, getCoworkers, getCoworker, insertCoworker, updateCoworker, removeCoworker, getOrgCoworkerOptions, getLeaderboard };

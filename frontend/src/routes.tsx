@@ -54,13 +54,13 @@ const routes: Route[] = [
         icon: <CIcon icon={cilList} customClassName='nav-icon' />,
         component: React.lazy(() => import('./views/StampRecordPage'))
     },
-    // {
-    //     type: 'item',
-    //     name: '排行榜',
-    //     path: 'leaderboard',
-    //     icon: <CIcon icon={cilChart} customClassName='nav-icon' />,
-    //     component: React.lazy(() => import('./views/LeaderboardPage'))
-    // },
+    {
+        type: 'item',
+        name: '排行榜',
+        path: 'leaderboard',
+        icon: <CIcon icon={cilChart} customClassName='nav-icon' />,
+        component: React.lazy(() => import('./views/LeaderboardPage'))
+    },
     {
         type: 'item',
         name: '搞事仔設定',
