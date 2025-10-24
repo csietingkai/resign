@@ -237,7 +237,7 @@ public class ResignService {
 			bp.setName(sc.getUserName());
 			bp.setPoint(sc.getPoint());
 			bp.setTotal(info.getMaxStampCnt());
-			bp.setProgress(BigDecimal.valueOf(sc.getPoint()).divide(BigDecimal.valueOf(info.getMaxStampCnt())).setScale(2, RoundingMode.HALF_UP));
+			bp.setProgress(BigDecimal.valueOf(sc.getPoint()).divide(BigDecimal.valueOf(info.getMaxStampCnt()), 2, RoundingMode.HALF_UP));
 			bps.add(bp);
 		});
 		vo.setByPoints(bps);
